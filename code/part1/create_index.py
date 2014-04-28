@@ -1,6 +1,8 @@
 import sys
 import argparse
 import json
+import csv
+import re
 
 from collections import defaultdict
 from porter_stemmer import PorterStemmer
@@ -10,7 +12,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-r', '--reviews', required=True, help='Review data file')
     parser.add_argument('-o', '--out', required=True, help='Inverted index output file')
-    parser.add_argument('-s', '--stop', help='Stopword list')
+    parser.add_argument('-s', '--stop', required=True, help='Stopword list')
     opts = parser.parse_args()
 
     '''
@@ -27,7 +29,7 @@ def main():
     '''
 
     ## Output file
-    csv_writer = csv.writer(open(opts.out, 'w'))
+    csv_writer = csv.writer(open(opts.out, 'w'), delimiter="\t")
     csv_writer.writerow(['token', 'business_id', 'review_id', 'position', '...'])
 
     ## Stemmer, stopwords, dict
@@ -44,17 +46,20 @@ def main():
     reviews = open(opts.reviews)
     for review_num, line in enumerate(reviews):
         review = json.loads(line)
-        business_id = review['business_id']
+        business_id = review['business_id'].encode('utf-8')
         text = review['text'].lower() # lowercase
 
         for position, word in enumerate(text.split()):
+            word = re.sub(r'[^\w\s]', '', word)
             word = stemmer.stem(word, 0, len(word) - 1) # apply stemming
-            if word not in stopwords: # filter stopwords
-                token_map[token].append((business_id, review_num, position))
+            if word not in stopwords and word != '': # filter stopwords
+                token_map[word].append((business_id, review_num, position))
 
     ## Print sorted inverted index
     for token in sorted(token_map):
-        csv_writer.writerow([token].extend(token_map[token]))
+        row = [token]
+        row.extend(token_map[token])
+        csv_writer.writerow(row)
 
 if __name__ == '__main__':
 	main()
