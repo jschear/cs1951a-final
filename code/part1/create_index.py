@@ -2,6 +2,9 @@ import sys
 import argparse
 import json
 
+from collections import defaultdict
+from porter_stemmer import PorterStemmer
+
 def main():
     ## args
     parser = argparse.ArgumentParser()
@@ -23,28 +26,35 @@ def main():
     }
     '''
 
+    ## Output file
+    csv_writer = csv.writer(open(opts.out, 'w'))
+    csv_writer.writerow(['token', 'business_id', 'review_id', 'position', '...'])
+
+    ## Stemmer, stopwords, dict
+    stopwords = set(line.strip() for line in open(opts.stop)) # Create stopword set
+    stemmer = PorterStemmer() # init Stemmer
+    token_map = defaultdict(list)
+
     ## Tokenize review texts
     # for each word in the vocabulary (in this case all words found in all reviews)
     # you should be able to retrieve a list of postings containing:
     # business id, review id, and position of each term occurrence
     # instead of using the review id, use the line on which the review occurs as a unique identifier
+
     reviews = open(opts.reviews)
     for review_num, line in enumerate(reviews):
         review = json.loads(line)
-
-        text = review['text']
         business_id = review['business_id']
+        text = review['text'].lower() # lowercase
 
-        print text, business_id, review_num
+        for position, word in enumerate(text.split()):
+            word = stemmer.stem(word, 0, len(word) - 1) # apply stemming
+            if word not in stopwords: # filter stopwords
+                token_map[token].append((business_id, review_num, position))
 
-        # lowercase
-
-        # apply stemming
-
-        # filter out stop words
-
-        # print review
-
+    ## Print sorted inverted index
+    for token in sorted(token_map):
+        csv_writer.writerow([token].extend(token_map[token]))
 
 if __name__ == '__main__':
 	main()
