@@ -1,2 +1,3 @@
 data/
-inverted_index.txt
+tmp/
+*.pyc
