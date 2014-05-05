@@ -19,13 +19,40 @@
             <h3>Constructing an Inverting Index</h3>
             <p>Q: Describe the format of your inverted index justifying your choice. What is the total size on disk, in absolute terms (number of bytes) and as % of the size of the original file.</p>
 
+            <p> Our inverted index file is stored in tab separated values. The index has one token per line, followed by a list of <code> (business_id, position, review_id) </code>  tuples. The review id is given by the line in the file on which the review occurs. The position number is the position of the token in the tokenized review. The file on disk takes up <code> 847mp </code>, compared with the <code> 290mb </code> taken up by the review file itself. However, having it in this format is well worth the 300% increase, making it much easier to query by the search engine itself.</p>
+
             <p>Q: What data structures do you use for storing the inverted index in your query program?</p>
+            <p> In the query program, the inverted index is stored as a giant hashtable of hashtables. Its keys are the tokens that appear in the text, and its values are maps with business ids as a key, and <code>(review_id,token_position)</code> tuples as values. We store it in this way for a variety of reasons. First and foremost, as we are looking for businesses, it makes sense to be able to easily figure out which businesses a given word is used in. Thus, when querying, it suffices to take the intersect of all the businesses mapped to by the corresponding tokens, and output that. Furthermore, it makes calculating the tf-idf scores easy. This hashtable has been implemented in two different ways. The first way we did it involved storing it entirely in memory, which was blazingly fast but ended up taking up about <code> 3.7gb </code> of RAM (my computer had no problem running that, but the SunLab computers are not up to the task). Furthermore, the loading time for that strategy was several minutes long. The second way involved reading the data entirely from disk. By storing a map from token to byte-number (an index into the inverted index), it was easy to read the data as necessary. Although this is a decent amount slower (it takes a second or two to respond to some queries), it used almost no memory, and made the startup time almost negligable. Furthermore, after each query the information is stored in memory. </p>
 
             <p>Q: How do you process the review texts?<p>
             <p>Stemming, stopwords, remove punctuation, split on whitespace, remove non-alpha words.</p>
 
             <h3>Querying the Inverted Index</h3>
             <p>Q: How do you handle three types of queries?</p>
+            <p> First, queries are divided into phrase queries, and other queries. Then, they are tokenized, and the count of the output is used to determine the type of query. If the tokenized line has length one (whether or not it came from a phrase query), it is processed as a one word query. Otherwise, it is processed as a free text query or a phrase query (depending on whether or not it was surrounded by quotes). </p>
+            <ol> 
+            <li> One word queries </li>
+
+            <p> One word queries are the easist to process. The word is accessed in the inverted index table - then, all the business id's in the corresponding map are returned. It is not necessary to loop through any of the occurances of the words, as we will rank the business later and for now we just need to figure out which businesses qualify.</p>
+
+            <li> Free text queries </li>
+
+            <p> With free text queries, we first retrieve all sets of businesses that correspond to each word (every business that contains a certain token in its reviews). Then, we take those sets and return the intersect of all of them. </p>
+
+            <li> Phrase Queries</li>
+            <p> Phrase queries are perhaps the most complex queries with which to deal. First, a free text query is performed. As that is a non-expensive operation (as the expensive part is processing the strings/accessing the file, if we are running it on disk, which ends up caching the results), it makes it much easier to process the results. Then, for each business, we find only the reviews which are in common for all the words, and transform the data we have into a map from review_num to a set of positions at which a word appears. Finally, to find out whether a phrase occurs in a review, we subtract an offset (the index of the word) from the position in the previously mentioned position-set (corresponding to a specific review). If the intersect of all word's position set is non-trivial (length greater than 0), then that review contains our phrase. Take, for example, the following sets of positions of the words "french" and "fries", in a certain review: </p>
+
+            <p> <code> "french" : { 1, 10, 20, 30 }  </code><br>
+            <code> "fries" : { 5, 11, 21 } </code> <br> <br>
+            By enumerating the phrase "french fries", we get that the offset of "french" is <code> 0 </code>, and the offset of "fries" is <code> 0 </code>. Thus, by subtracting the offset from each of the positions, we arrive at the following two sets: <br> <br>
+
+            <code> "french" : { 1, 10, 20, 30 }</code><br>
+            <code> "fries" : { 4, 10, 20 }</code> <br> <br>
+
+            The intersect of these two sets is <code>{ 10, 20 }</code>, meaning that the phrase "french fries" occurs twice (at positions <code>10</code>, and <code>20</code>. This strategy is easy to implement and works in <code>O(n*w)</code> time, where <code> n </code> is the number of occurances of the least frequent word, and <code>w</code> is the number of words in the phrase.
+
+            </p>
+            </ol>
 
             <p>Q: Describe your ranking algorithm and justify your choice. For each type of queries, you should pick at least two example search terms and show how the rankings changed after you added heuristic on tf-idf. For each business, you should display the following information:
             <ul>
