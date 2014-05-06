@@ -156,17 +156,27 @@ class SearchEngine:
             return self.htmlrep_results(filtered_results)
 
     def htmlrep_business(self, business_id):
-        strrep = self.strrep_business(business_id) + " <a href =\"WEBSITE\">link</a>"
+        data = self.business_data[business_id]
+        strrep = self.strrep_business(business_id, self.htmlrep_item) + " <a href =\"WEBSITE\">link</a>"
         strrep = strrep.replace("\n","<br>")
         return strrep
 
-    def strrep_business(self, business_id):
-        def strrep_item(field_name, value):
+    def strrep_item(self, field_name, value):
+            # field_name, value = item
+            if field_name == "categories":
+                return str(field_name) + ": " + ", ".join(map(str, value))
+            else:
+                return str(field_name) + ": " + str(value)
+
+    def htmlrep_item(self, field_name, value):
             # field_name, value = item
             if field_name == "categories":
                 return "<em> " + str(field_name) + "</em> : " + ", ".join(map(str, value))
             else:
                 return "<em> " + str(field_name) + "</em> : " + str(value)
+
+    def strrep_business(self, business_id, strrep_item):
+        
         data = self.business_data[business_id]
         # pdb.set_trace()
         fields = map(data.get, self.fields_to_display)
@@ -188,7 +198,7 @@ class SearchEngine:
 
     def strrep_results(self, business_ids):
         # pdb.set_trace()
-        return "\n".join(map(self.strrep_business,business_ids))
+        return "\n".join(map(lambda business: self.strrep_business(business, self.strrep_item),business_ids))
 
     def htmlrep_results(self, business_ids):
         out = "<ol>"
