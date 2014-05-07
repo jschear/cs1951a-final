@@ -16,15 +16,14 @@ import numpy
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn import cross_validation
-#from sklearn.naive_bayes import BernoulliNB
-#from sklearn.linear_model import LogisticRegression
-#from sklearn.svm import LinearSVC
-from tokenizer import Tokenizer
 
 from sklearn.multiclass import OneVsOneClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import LinearSVC
+from sklearn.naive_bayes import BernoulliNB
+from sklearn.linear_model import LogisticRegression
 
+from tokenizer import Tokenizer
 
 '''
 JSON Structure
@@ -96,7 +95,6 @@ def main():
 
     # load business and categories
     all_categories = set(line.strip() for line in open(opts.categories))
-
     bids_to_categories = {}
     businesses_file = open(opts.businesses)
     for line in businesses_file:
@@ -127,6 +125,16 @@ def main():
         reviews = reviews[:opts.first]
         labels = labels[:opts.first]
 
+    # count number of reviews for each label
+    num_for_label = defaultdict(int)
+    for label_list in labels:
+        for label in label_list:
+            num_for_label[label] = num_for_label[label] + 1
+
+    num_for_label = sorted(num_for_label.items(), key=lambda x: x[1], reverse=True)
+    print 'Number of reviews for each label:'
+    print '\n'.join(map(lambda x: x[0] + ": " + str(x[1]), num_for_label))
+
     # Get training features using vectorizer
     train_features = vectorizer.fit_transform(reviews)
 
@@ -137,7 +145,9 @@ def main():
 
     ##### TRAIN THE MODEL ######################################
     print "-- Training Classifier --"
-    classifier = OneVsRestClassifier(LinearSVC(random_state=0))
+    #classifier = OneVsRestClassifier(LinearSVC(random_state=0)) #, n_jobs=-1)
+    #classifier = OneVsRestClassifier(LinearSVC(random_state=0)) #, n_jobs=-1)
+    classifier = OneVsRestClassifier(LogisticRegression()) #, n_jobs=-1)
     classifier.fit(train_features, train_labels)
     ############################################################
 
@@ -146,14 +156,16 @@ def main():
     # Print training mean accuracy using 'score'
     print "-- Validation --"
     # print "Mean accuracy on training data:", classifier.score(train_features, train_labels)
-
     predicted_labels = classifier.predict(train_features)
     print accuracy_score(train_labels, predicted_labels)
+    print classification_report(train_labels, predicted_labels)
 
-    # Perform 10 fold cross validation (cross_validation.cross_val_score) with scoring='accuracy'
+    # TODO: Try the different metric here that are more interpretable for multilabel classification
+
+    # Perform 5 fold cross validation (cross_validation.cross_val_score) with scoring='accuracy'
     # and print the mean score and std deviation
-    scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
-        scoring='accuracy', cv=10, n_jobs=-1) # passing integer for cv uses StratifiedKFold where k = integer
+    #scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
+    #    scoring='accuracy', cv=5, n_jobs=-1)
 
     # print "Cross validation mean score:", numpy.mean(scores)
     # print "Cross validation standard deviation:", numpy.std(scores)

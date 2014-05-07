@@ -19,10 +19,3 @@ class Tokenizer(object):
                 tokens.append(word)
 
         return tokens
-
-## Possible thing to add: replace 3 or more occurrences of the same character with two occurrences
-# for sub_word in word.split():
-#     # Replace three or more occurrences of the same character with two occurrences
-#     unique_chars = ''.join(set(sub_word))
-#     for c in unique_chars:
-#         sub_word = re.sub(c + r'{3,}', c + c, sub_word)
