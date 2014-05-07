@@ -17,9 +17,11 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn import cross_validation
 
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsOneClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import LinearSVC
+
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.linear_model import LogisticRegression
 
@@ -84,6 +86,7 @@ def main():
     parser.add_argument('-stop', required=True, help='Stopwords file')
     parser.add_argument('-top', type=int, help='Number of top features to show')
     parser.add_argument('-first', type=int, help='Number of reviews to use')
+    parser.add_argument('-c', '--classifier', help='Classifier to use. Options are: RF, NB, LR, LOG')
     opts = parser.parse_args()
     ##
 
@@ -112,7 +115,9 @@ def main():
     reviews = []
     labels = []
     review_file = open(opts.reviews)
+    i = 0
     for line in review_file:
+        if opts.first != None and i > opts.first: break
         review = json.loads(line)
         # check if this is a review for one of the restuarants with labeled categories
         if review['business_id'] in bids_to_categories:
@@ -145,9 +150,20 @@ def main():
 
     ##### TRAIN THE MODEL ######################################
     print "-- Training Classifier --"
-    #classifier = OneVsRestClassifier(LinearSVC(random_state=0)) #, n_jobs=-1)
-    #classifier = OneVsRestClassifier(LinearSVC(random_state=0)) #, n_jobs=-1)
-    classifier = OneVsRestClassifier(LogisticRegression()) #, n_jobs=-1)
+
+    # try n_jobs = -1 for all of these once we get everything working
+    if opts.classifier == 'RF':
+        classifier = RandomForestClassifier(n_jobs = -1, verbose = 1)
+        train_features = train_features.toarray()
+    elif opts.classifier == 'NB':
+        classifier = OneVsRestClassifier(BernoulliNB())
+    elif opts.classifier == 'SVC':
+        classifier = OneVsRestClassifier(LinearSVC())
+    elif opts.classifier == 'LOG':
+        classifier = OneVsRestClassifier(LogisticRegression())
+        print "Invalid classifier " + str(opts.classifier)
+        return
+
     classifier.fit(train_features, train_labels)
     ############################################################
 

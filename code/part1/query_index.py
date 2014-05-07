@@ -16,11 +16,11 @@ class SearchEngineData(): #lazy access dictionary on disk, takes in an index, an
     def __init__(self, index, path, to_cache = {}): 
         self.data = defaultdict(lambda: defaultdict(list))
         self.index = index
-        print to_cache, len(to_cache)
+        # print to_cache, len(to_cache)
         # pdb.set_trace()
         self.f = open(path,"r")
         for i,item in enumerate(to_cache):
-            print i
+            # print i
             self.__getitem__(item)
 
     def __getitem__(self, key): #returns 
