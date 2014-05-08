@@ -20,27 +20,21 @@ from sklearn import cross_validation
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsOneClassifier
 from sklearn.multiclass import OneVsRestClassifier
-<<<<<<< HEAD
 from sklearn.svm import LinearSVC, SVC
 from sklearn.ensemble import RandomForestClassifier
-=======
-from sklearn.svm import LinearSVC
-
->>>>>>> b117a0b917992c7c5b85d56162f5ee8e1a845495
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
-<<<<<<< HEAD
+
 from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_regression
-=======
+
 
 from tokenizer import Tokenizer
 
->>>>>>> b117a0b917992c7c5b85d56162f5ee8e1a845495
 '''
 JSON Structure
 
@@ -182,17 +176,20 @@ def main():
     print "-- Training Classifier --"
 
     # try n_jobs = -1 for all of these once we get everything working
+    # some of these options don't really work...
     if opts.classifier == 'RF':
-        classifier = RandomForestClassifier(n_jobs = -1, verbose = 1, max_features = 'log2', max_depth = 5)
+        classifier = RandomForestClassifier( verbose = 0, max_features = 'log2', max_depth = 5)
         train_features = train_features.toarray()
+        test_features = test_features.toarray()
+
     elif opts.classifier == 'BNB':
         classifier = OneVsRestClassifier(BernoulliNB())
     elif opts.classifier == 'GNB':
         classifier = OneVsRestClassifier(GaussianNB())
         train_features = train_features.toarray()
+        test_features = test_features.toarray()
     elif opts.classifier == 'SVC':
         classifier = OneVsRestClassifier(LinearSVC())
-<<<<<<< HEAD
     elif opts.classifier == 'LR':
         classifier = OneVsRestClassifier(LogisticRegression())
     elif opts.classifier == 'KN':
@@ -200,13 +197,9 @@ def main():
     elif opts.classifier == 'PPL':
         # classifier = Pipeline([('svm', LinearSVC()), ('lr', LogisticRegression())]) #takes forever
         classifier = Pipeline([('svm', LinearSVC()),('lr', OneVsRestClassifier(LogisticRegression()))])
-    elif opts.classifier == '_LR':
-        classifier = LogisticRegression()
-    else:
-=======
     elif opts.classifier == 'LOG':
         classifier = OneVsRestClassifier(LogisticRegression())
->>>>>>> b117a0b917992c7c5b85d56162f5ee8e1a845495
+    else:
         print "Invalid classifier " + str(opts.classifier)
         return
 
@@ -218,7 +211,6 @@ def main():
     # Print training mean accuracy using 'score'
     print "-- Testing --"
     # print "Mean accuracy on training data:", classifier.score(train_features, train_labels)
-<<<<<<< HEAD
     # pdb.set_trace()
     predicted_labels = classifier.predict(test_features)
     print classification_report(test_labels, predicted_labels)
@@ -228,27 +220,19 @@ def main():
     # for test_feature, label in zip(test_features, predicted_labels)[1:20]:
     #     # pdb.set_trace()
     #     print test_features, label
-=======
-    predicted_labels = classifier.predict(train_features)
-    print accuracy_score(train_labels, predicted_labels)
-    print classification_report(train_labels, predicted_labels)
->>>>>>> b117a0b917992c7c5b85d56162f5ee8e1a845495
 
     # TODO: Try the different metric here that are more interpretable for multilabel classification
 
     # Perform 5 fold cross validation (cross_validation.cross_val_score) with scoring='accuracy'
     # and print the mean score and std deviation
-<<<<<<< HEAD
     # cv = 2
 
     # print "-- Cross-Validating with " + str(cv) + " folds -- "
     # scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
     #     scoring='accuracy', cv = cv, n_jobs=cv) # passing integer for cv uses StratifiedKFold where k = integer
     # print scores, scores.mean()
-=======
     #scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
     #    scoring='accuracy', cv=5, n_jobs=-1)
->>>>>>> b117a0b917992c7c5b85d56162f5ee8e1a845495
 
     # print "Cross validation mean score:", numpy.mean(scores)
     # print "Cross validation standard deviation:", numpy.std(scores)
@@ -263,63 +247,6 @@ def main():
         print_top(opts.top, vectorizer, classifier)
     ############################################################
 
-
-    ##### TEST THE MODEL #######################################
-    # print "-- Testing --"
-    # if opts.test is None:
-    #     # Test the classifier on one sample test tweet
-    #     # Tim Kraska 10:43 AM - 5 Feb 13
-    #     test_tweet = 'Water dripping from 3rd to 1st floor while the firealarm makes it hard to hear anything. BTW this is the 2nd leakage.  Love our new house'
-
-    #     sample_test_features = vectorizer.transform([test_tweet]) # extract features
-
-    #     # Print the predicted label of the test tweet
-    #     print "Test tweet predicted label:", classifier.predict(sample_test_features)[0]
-
-    #     # Print the predicted probability of each label.
-    #     if opts.classifier != 'svm':
-    #         class_probs = classifier.predict_proba(sample_test_features)[0]
-    #         print "Probability of label 0:", class_probs[0]
-    #         print "Probability of label 1:", class_probs[1]
-    #     else:
-    #         print "Confidence score for test tweet:", classifier.decision_function(sample_test_features)[0]
-
-    # else:
-    #     # Test the classifier on the given test set
-    #     # Extract features from the test set and transform it using vectorizer
-    #     test_text = []
-    #     test_labels = []
-    #     csv_reader = csv.reader(open(opts.test))
-    #     for line in csv_reader:
-    #         test_labels.append(int(line[0]))
-    #         test_text.append(line[5])
-
-    #     test_features = vectorizer.transform(test_text)
-
-    #     # Print test mean accuracy
-    #     print "Mean test accuracy:", classifier.score(test_features, test_labels)
-
-    #     # Predict labels for the test set
-    #     pred_test_labels = classifier.predict(test_features)
-
-    #     # Print the classification report
-    #     print classification_report(test_labels, pred_test_labels, target_names=["Negative Sentiment"," Positive Sentiment"])
-
-    #     # Print the confusion matrix
-    #     print confusion_matrix(test_labels, pred_test_labels)
-
-    #     # Get predicted label of the test set
-    #     if opts.classifier != 'svm':
-    #         test_predicted_proba = classifier.predict_proba(test_features) # Use predict_proba
-    #         util.plot_roc_curve(test_labels, test_predicted_proba) # Plot ROC curve
-
-    #         # Print 10 correct and incorrect tweets with probabilities for writeup
-    #         #print_examples(test_labels, pred_test_labels, test_predicted_proba, test_text)
-
-    #     else:
-    #         print "Confidence scores:", classifier.decision_function(test_features) # Use decision_function
-    ############################################################
-#python restaurant_classifier.py -b ../../tmp/businesses.json -stop stopwords.txt -r ../../tmp/reviews.json -cats ./cuisines.txt -top 10 -c LR
 
 def print_top(num, vectorizer, classifier):
     if type(classifier) == Pipeline:
