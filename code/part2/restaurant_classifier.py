@@ -3,19 +3,22 @@ import sys
 import csv
 import argparse
 import json
-from collections import defaultdict
+from collections import defaultdict, Counter
 from operator import itemgetter
 
 from pprint import pprint
 
 import util
 
-import pdb
+from datetime import datetime
 
+import pdb
+import math
 import numpy
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import *
 from sklearn import cross_validation
+from itertools import chain
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsOneClassifier
@@ -87,6 +90,54 @@ Reviews:
 '''
 
 
+class VotingClassifier(object):
+
+    def __init__(self,classifiers):
+        self.classifiers = classifiers
+        self.num_classifiers = len(classifiers)
+
+    def fit(self, features, labels):
+        for classifier in self.classifiers:
+            print '    -- Training ' + str(classifier.__class__.__name__) + " --"
+            classifier.fit(features, labels)
+
+    def predict(self, features):
+        
+        predictions = {}
+        for classifier in self.classifiers:
+            print '    -- Predicting with ' + str(classifier.__class__.__name__) + " --"
+            predictions[classifier] = classifier.predict(features)
+
+        # predictions = { classifier: classifier.predict(features) for classifier in self.classifiers }
+        out = []
+        print '    -- Merging Predictions --'
+        l = features.shape[0]
+        for i, feature in enumerate(features):
+            # print i, l
+            if  i % (l//5) == 0:
+                print "{0:.0f}".format((i/l)*100.0) + "%"
+            # pdb.set_trace()
+            feature_predictions = { classifier : predictions[classifier][i] for classifier in self.classifiers }
+            out.append(self.merge(feature_predictions))
+        return out
+
+    def merge(self, predictions):
+        classifiers, predictions = [classifier for classifier,_ in predictions.items()], [prediction for _,prediction in predictions.items()]
+        predictions = filter(lambda prediction: len(prediction) > 0, predictions)
+        if len(predictions) == 0:
+            return []
+        output_length = math.ceil(sum(map(len,predictions))/len(predictions))
+        if output_length == 0:
+            return []
+        return [class_ for class_,_ in sorted(Counter(chain(*predictions)).items(),key = lambda item: item[1])]
+
+
+
+
+
+
+            
+
 
 
 def main():
@@ -109,7 +160,7 @@ def main():
 
 
     # load business and categories
-    all_categories = set(line.strip() for line in open(opts.categories))
+    all_categories = set(line.strip() for line in open(opts.categories) if line[0] != "#")
     bids_to_categories = {}
     businesses_file = open(opts.businesses)
     for line in businesses_file:
@@ -177,8 +228,9 @@ def main():
 
     # try n_jobs = -1 for all of these once we get everything working
     # some of these options don't really work...
+    #add a voting algorithm using SVC, LogReg, and BNB? Weight them according to self calculated accuracy?
     if opts.classifier == 'RF':
-        classifier = RandomForestClassifier( verbose = 0, max_features = 'log2', max_depth = 5)
+        classifier = OneVsRestClassifier(RandomForestClassifier())
         train_features = train_features.toarray()
         test_features = test_features.toarray()
 
@@ -199,6 +251,8 @@ def main():
         classifier = Pipeline([('svm', LinearSVC()),('lr', OneVsRestClassifier(LogisticRegression()))])
     elif opts.classifier == 'LOG':
         classifier = OneVsRestClassifier(LogisticRegression())
+    elif opts.classifier == 'VOT':
+        classifier = VotingClassifier([OneVsRestClassifier(LogisticRegression()), OneVsRestClassifier(BernoulliNB()), OneVsRestClassifier(LinearSVC())])
     else:
         print "Invalid classifier " + str(opts.classifier)
         return
@@ -213,10 +267,14 @@ def main():
     # print "Mean accuracy on training data:", classifier.score(train_features, train_labels)
     # pdb.set_trace()
     predicted_labels = classifier.predict(test_features)
-    print classification_report(test_labels, predicted_labels)
-    for evaluation_function in [accuracy_score, f1_score, lambda test_labels, predicted_labels : fbeta_score(test_labels, predicted_labels, .1), hamming_loss, jaccard_similarity_score, precision_score, recall_score, zero_one_loss]: 
-        print evaluation_function.__name__ + ":" + str(evaluation_function(test_labels, predicted_labels))
 
+    def evaluate(test_labels, predicted_labels):
+        print classification_report(test_labels, predicted_labels)
+        # pdb.set_trace()
+        for evaluation_function in [accuracy_score, f1_score, lambda test_labels, predicted_labels : fbeta_score(test_labels, predicted_labels, .1), hamming_loss, jaccard_similarity_score, precision_score, recall_score, zero_one_loss]: 
+            print evaluation_function.__name__ + ":" + str(evaluation_function(test_labels, predicted_labels))
+
+    evaluate(test_labels, predicted_labels)
     # for test_feature, label in zip(test_features, predicted_labels)[1:20]:
     #     # pdb.set_trace()
     #     print test_features, label
@@ -240,8 +298,8 @@ def main():
 
 
     ##### EXAMINE THE MODEL ####################################
-    print "-- Informative Features --"
     if opts.top is not None and opts.classifier != "RF":
+        print "-- Informative Features --"
         # print top n most informative features for positive and negative classes
         print "Top", opts.top, "most informative features:"
         print_top(opts.top, vectorizer, classifier)
@@ -253,6 +311,12 @@ def print_top(num, vectorizer, classifier):
         for name, classifier in classifier.named_steps.items():
             print name
             print_top(10, vectorizer, classifier)
+    if type(classifier) == RandomForestClassifier:
+        classifier = classifier.estimator
+    if type(classifier) == VotingClassifier:
+        for classifier_ in classifier.classifiers:
+            print_top(num, vectorizer, classifier_)
+        return
     # pdb.set_trace()
     """Prints features with the highest coefficient values, per class"""
     feature_names = vectorizer.get_feature_names()
