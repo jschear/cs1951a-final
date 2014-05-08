@@ -17,22 +17,30 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import *
 from sklearn import cross_validation
 
-
-
-from tokenizer import Tokenizer
-
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsOneClassifier
 from sklearn.multiclass import OneVsRestClassifier
+<<<<<<< HEAD
 from sklearn.svm import LinearSVC, SVC
 from sklearn.ensemble import RandomForestClassifier
+=======
+from sklearn.svm import LinearSVC
+
+>>>>>>> b117a0b917992c7c5b85d56162f5ee8e1a845495
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
+<<<<<<< HEAD
 from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_regression
+=======
+
+from tokenizer import Tokenizer
+
+>>>>>>> b117a0b917992c7c5b85d56162f5ee8e1a845495
 '''
 JSON Structure
 
@@ -95,7 +103,7 @@ def main():
     parser.add_argument('-stop', required=True, help='Stopwords file')
     parser.add_argument('-top', type=int, help='Number of top features to show')
     parser.add_argument('-first', type=int, help='Number of reviews to use')
-    parser.add_argument('-c', '--classifier', help='Classifier to use. Options are: RF, NB, LR')
+    parser.add_argument('-c', '--classifier', help='Classifier to use. Options are: RF, NB, LR, LOG')
     opts = parser.parse_args()
     ##
 
@@ -108,7 +116,6 @@ def main():
 
     # load business and categories
     all_categories = set(line.strip() for line in open(opts.categories))
-
     bids_to_categories = {}
     businesses_file = open(opts.businesses)
     for line in businesses_file:
@@ -139,9 +146,19 @@ def main():
             labels.append(categories)
 
     # shrink dataset
-    # if opts.first is not None:
-    #     reviews = reviews[:opts.first]
-    #     labels = labels[:opts.first]
+    if opts.first is not None:
+        reviews = reviews[:opts.first]
+        labels = labels[:opts.first]
+
+    # count number of reviews for each label
+    num_for_label = defaultdict(int)
+    for label_list in labels:
+        for label in label_list:
+            num_for_label[label] = num_for_label[label] + 1
+
+    num_for_label = sorted(num_for_label.items(), key=lambda x: x[1], reverse=True)
+    print 'Number of reviews for each label:'
+    print '\n'.join(map(lambda x: x[0] + ": " + str(x[1]), num_for_label))
 
     # Get training features using vectorizer
     assert len(reviews) == len(labels)
@@ -163,6 +180,8 @@ def main():
 
     ##### TRAIN THE MODEL ######################################
     print "-- Training Classifier --"
+
+    # try n_jobs = -1 for all of these once we get everything working
     if opts.classifier == 'RF':
         classifier = RandomForestClassifier(n_jobs = -1, verbose = 1, max_features = 'log2', max_depth = 5)
         train_features = train_features.toarray()
@@ -173,6 +192,7 @@ def main():
         train_features = train_features.toarray()
     elif opts.classifier == 'SVC':
         classifier = OneVsRestClassifier(LinearSVC())
+<<<<<<< HEAD
     elif opts.classifier == 'LR':
         classifier = OneVsRestClassifier(LogisticRegression())
     elif opts.classifier == 'KN':
@@ -183,8 +203,13 @@ def main():
     elif opts.classifier == '_LR':
         classifier = LogisticRegression()
     else:
+=======
+    elif opts.classifier == 'LOG':
+        classifier = OneVsRestClassifier(LogisticRegression())
+>>>>>>> b117a0b917992c7c5b85d56162f5ee8e1a845495
         print "Invalid classifier " + str(opts.classifier)
         return
+
     classifier.fit(train_features, train_labels)
     ############################################################
 
@@ -193,6 +218,7 @@ def main():
     # Print training mean accuracy using 'score'
     print "-- Testing --"
     # print "Mean accuracy on training data:", classifier.score(train_features, train_labels)
+<<<<<<< HEAD
     # pdb.set_trace()
     predicted_labels = classifier.predict(test_features)
     print classification_report(test_labels, predicted_labels)
@@ -202,15 +228,27 @@ def main():
     # for test_feature, label in zip(test_features, predicted_labels)[1:20]:
     #     # pdb.set_trace()
     #     print test_features, label
+=======
+    predicted_labels = classifier.predict(train_features)
+    print accuracy_score(train_labels, predicted_labels)
+    print classification_report(train_labels, predicted_labels)
+>>>>>>> b117a0b917992c7c5b85d56162f5ee8e1a845495
 
-    # Perform 10 fold cross validation (cross_validation.cross_val_score) with scoring='accuracy'
+    # TODO: Try the different metric here that are more interpretable for multilabel classification
+
+    # Perform 5 fold cross validation (cross_validation.cross_val_score) with scoring='accuracy'
     # and print the mean score and std deviation
+<<<<<<< HEAD
     # cv = 2
 
     # print "-- Cross-Validating with " + str(cv) + " folds -- "
     # scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
     #     scoring='accuracy', cv = cv, n_jobs=cv) # passing integer for cv uses StratifiedKFold where k = integer
     # print scores, scores.mean()
+=======
+    #scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
+    #    scoring='accuracy', cv=5, n_jobs=-1)
+>>>>>>> b117a0b917992c7c5b85d56162f5ee8e1a845495
 
     # print "Cross validation mean score:", numpy.mean(scores)
     # print "Cross validation standard deviation:", numpy.std(scores)
