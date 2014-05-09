@@ -29,6 +29,7 @@ from sklearn.naive_bayes import BernoulliNB
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
 
 from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
@@ -88,6 +89,11 @@ Reviews:
         review['business_id']
         review['text']
 '''
+def time_generator():
+    start_time = datetime.now()
+    while(True):
+        yield datetime.now() - start_time
+timer = time_generator()
 
 
 class VotingClassifier(object):
@@ -98,19 +104,19 @@ class VotingClassifier(object):
 
     def fit(self, features, labels):
         for classifier in self.classifiers:
-            print '    -- Training ' + str(classifier.__class__.__name__) + " --"
+            print '    -- Training ' + str(classifier.__class__.__name__) + " -- " + str(timer.next())
             classifier.fit(features, labels)
 
     def predict(self, features):
         
         predictions = {}
         for classifier in self.classifiers:
-            print '    -- Predicting with ' + str(classifier.__class__.__name__) + " --"
+            print '    -- Predicting with ' + str(classifier.__class__.__name__) + " -- " + str(timer.next())
             predictions[classifier] = classifier.predict(features)
 
         # predictions = { classifier: classifier.predict(features) for classifier in self.classifiers }
         out = []
-        print '    -- Merging Predictions --'
+        print '    -- Merging Predictions -- ' + str(timer.next())
         l = features.shape[0]
         for i, feature in enumerate(features):
             # print i, l
@@ -123,13 +129,18 @@ class VotingClassifier(object):
 
     def merge(self, predictions):
         classifiers, predictions = [classifier for classifier,_ in predictions.items()], [prediction for _,prediction in predictions.items()]
-        predictions = filter(lambda prediction: len(prediction) > 0, predictions)
-        if len(predictions) == 0:
-            return []
-        output_length = math.ceil(sum(map(len,predictions))/len(predictions))
+        filtered_predictions = filter(lambda prediction: len(prediction) > 0, predictions)
+        out = []
+        if len(filtered_predictions) == 0:
+            print str(filtered_predictions) + " ----> " + str(out)
+            return out
+        output_length = math.ceil(sum(map(len,filtered_predictions))/len(filtered_predictions))
         if output_length == 0:
-            return []
-        return [class_ for class_,_ in sorted(Counter(chain(*predictions)).items(),key = lambda item: item[1])]
+            print str(filtered_predictions) + " ----> " + str(out)
+            return out
+        out =  [class_ for class_,_ in sorted(Counter(chain(*filtered_predictions)).items(),key = lambda item: item[1], reverse = True)]
+        print str(filtered_predictions) + " ----> " + str(out)
+        return out
 
 
 
@@ -162,6 +173,7 @@ def main():
     # load business and categories
     all_categories = set(line.strip() for line in open(opts.categories) if line[0] != "#")
     bids_to_categories = {}
+    bids_to_names = {}
     businesses_file = open(opts.businesses)
     for line in businesses_file:
         business = json.loads(line)
@@ -170,12 +182,13 @@ def main():
             categories = filter(lambda x: x in all_categories, categories)
             if len(categories) > 0:
                 bids_to_categories[business['business_id']] = categories
+                bids_to_names[business['business_id']] = business['name']
     print "Examining " + str(len(bids_to_categories)) + " Businesses"
 
     #pprint(bids_to_categories)
 
     # Load training review text
-    print "-- Extracting Features --"
+    print "-- Extracting Features -- " + str(timer.next())
     reviews = []
     labels = []
     review_file = open(opts.reviews)
@@ -186,7 +199,9 @@ def main():
         review = json.loads(line)
         # check if this is a review for one of the restuarants with labeled categories
         if review['business_id'] in bids_to_categories:
-            reviews.append(review['text'])
+            name = bids_to_names[review['business_id']]
+            reviews.append(review['text'] + " " + name)
+            # reviews.append(review['text'])
             categories = bids_to_categories[review['business_id']]
             labels.append(categories)
 
@@ -202,8 +217,8 @@ def main():
             num_for_label[label] = num_for_label[label] + 1
 
     num_for_label = sorted(num_for_label.items(), key=lambda x: x[1], reverse=True)
-    print 'Number of reviews for each label:'
-    print '\n'.join(map(lambda x: x[0] + ": " + str(x[1]), num_for_label))
+    # print 'Number of reviews for each label:'
+    # print '\n'.join(map(lambda x: x[0] + ": " + str(x[1]), num_for_label))
 
     # Get training features using vectorizer
     assert len(reviews) == len(labels)
@@ -211,6 +226,7 @@ def main():
 
     train_features = vectorizer.fit_transform(reviews[:splitindex])
     test_features = vectorizer.transform(reviews[splitindex:])
+    del reviews
 
     # Transform training labels and test labels to numpy array (numpy.array)
     
@@ -218,13 +234,14 @@ def main():
 
     train_labels = numpy.array(labels[:splitindex])
     test_labels = numpy.array(labels[splitindex:])
+    del labels
     ############################################################
 
     # test_labels = numpy.array(test_labels)
 
 
     ##### TRAIN THE MODEL ######################################
-    print "-- Training Classifier --"
+    print "-- Training Classifier -- " + str(timer.next())
 
     # try n_jobs = -1 for all of these once we get everything working
     # some of these options don't really work...
@@ -263,7 +280,7 @@ def main():
 
     ###### VALIDATE THE MODEL ##################################
     # Print training mean accuracy using 'score'
-    print "-- Testing --"
+    print "-- Testing -- " + str(timer.next())
     # print "Mean accuracy on training data:", classifier.score(train_features, train_labels)
     # pdb.set_trace()
     predicted_labels = classifier.predict(test_features)
@@ -286,9 +303,11 @@ def main():
     # cv = 2
 
     # print "-- Cross-Validating with " + str(cv) + " folds -- "
-    # scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
-    #     scoring='accuracy', cv = cv, n_jobs=cv) # passing integer for cv uses StratifiedKFold where k = integer
-    # print scores, scores.mean()
+    cv = 4
+    scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
+        scoring='accuracy', cv = cv, n_jobs=cv) # passing integer for cv uses StratifiedKFold where k = integer
+    print scores, scores.mean()
+
     #scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
     #    scoring='accuracy', cv=5, n_jobs=-1)
 
@@ -299,7 +318,7 @@ def main():
 
     ##### EXAMINE THE MODEL ####################################
     if opts.top is not None and opts.classifier != "RF":
-        print "-- Informative Features --"
+        print "-- Informative Features -- " + str(timer.next())
         # print top n most informative features for positive and negative classes
         print "Top", opts.top, "most informative features:"
         print_top(opts.top, vectorizer, classifier)
@@ -307,6 +326,12 @@ def main():
 
 
 def print_top(num, vectorizer, classifier):
+    # pdb.set_trace()
+    try:
+        classifier.coef_
+    except Exception:
+        print "Unable to print top " + str(num) + " results"
+        return
     if type(classifier) == Pipeline:
         for name, classifier in classifier.named_steps.items():
             print name
