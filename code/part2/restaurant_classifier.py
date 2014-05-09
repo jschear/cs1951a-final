@@ -111,7 +111,7 @@ class VotingClassifier(object):
             classifier.fit(features, labels)
 
     def predict(self, features):
-        
+
         predictions = {}
         for classifier in self.classifiers:
             print '    -- Predicting with ' + str(classifier.__class__.__name__) + " -- " + str(timer.next())
@@ -159,7 +159,7 @@ class VotingClassifier(object):
 
 
 
-            
+
 
 
 
@@ -241,9 +241,6 @@ def main():
     del reviews
 
     # Transform training labels and test labels to numpy array (numpy.array)
-    
-
-
     train_labels = numpy.array(labels[:splitindex])
     test_labels = numpy.array(labels[splitindex:])
     del labels
@@ -295,13 +292,39 @@ def main():
     # Print training mean accuracy using 'score'
     print "-- Testing -- " + str(timer.next())
     # print "Mean accuracy on training data:", classifier.score(train_features, train_labels)
-    # pdb.set_trace()
     predicted_labels = classifier.predict(test_features)
+    print classification_report(test_labels, predicted_labels)
+    # for evaluation_function in [accuracy_score, f1_score, lambda test_labels, predicted_labels : fbeta_score(test_labels, predicted_labels, .1), hamming_loss, jaccard_similarity_score, precision_score, recall_score, zero_one_loss]:
+    #     print evaluation_function.__name__ + ":" + str(evaluation_function(test_labels, predicted_labels))
+
+    print "Precision score"
+    print precision_score(test_labels, predicted_labels, average = None)
+    print precision_score(test_labels, predicted_labels, average = 'samples')
+
+    print "Recall scores:"
+    print recall_score(test_labels, predicted_labels, average = None)
+    print recall_score(test_labels, predicted_labels, average = 'samples')
+
+    print "f1 scores:"
+    print f1_score(test_labels, predicted_labels, average = None)
+    print f1_score(test_labels, predicted_labels, average = 'samples')
+
+    print "Accuracy score:"
+    print accuracy_score(test_labels, predicted_labels)
+
+    print "Hamming loss:"
+    print hamming_loss(test_labels, predicted_labels)
+
+    print "Zero-one loss"
+    print zero_one_loss(test_labels, predicted_labels)
+
+    print "Jaccard similarity:"
+    print jaccard_similarity_score(test_labels, predicted_labels)
 
     def evaluate(test_labels, predicted_labels):
         print classification_report(test_labels, predicted_labels)
         # pdb.set_trace()
-        for evaluation_function in [accuracy_score, f1_score, lambda test_labels, predicted_labels : fbeta_score(test_labels, predicted_labels, .1), hamming_loss, jaccard_similarity_score, precision_score, recall_score, zero_one_loss]: 
+        for evaluation_function in [accuracy_score, f1_score, lambda test_labels, predicted_labels : fbeta_score(test_labels, predicted_labels, .1), hamming_loss, jaccard_similarity_score, precision_score, recall_score, zero_one_loss]:
             print evaluation_function.__name__ + ":" + str(evaluation_function(test_labels, predicted_labels))
 
     evaluate(test_labels, predicted_labels)
