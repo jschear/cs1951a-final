@@ -11,18 +11,53 @@
     <div class="row">
         <div class="col-md-2"></div>
         <div class="col-md-8">
+
             <div class="page-header center">
-                <h1></h1>
+                <h1>Restaurant Classification <br><small>Elijah ben Izzy and Jonathan Schear (ebenizzy and jschear)</small></h1>
+            </div>
+
+            <div> 
+
+            <h2> Problem </h2>
+            <p> 
+
+            In this study, we attempted to predict the category (specifically the cuisine) of restaurants in the dataset from the text of restaurant review and the name of the restaurant with high accuracy. We only attempted to predict a certain subset of business, those for which any of their categories were food types. In all, there were 120 different classifications, ranging from American (New) and American (Traditional) to Dim Sum, Brazilian, Chicken Wings, Vegan, and Soul Food. We chose to do this because it represented an interesting challenge. It was both a contained problem, as cuisines will often have different key indicator words, and a difficult one, which involved multi-class training and multilabel classification. 
+
+           
+            </p>
+
+            <h2> Hypothesis </h2>
+
+            We predict that for most restaurants (roughly 80%) on Yelp, their categories can be fairly accurately predicted by the text of their reviews and the name of the restaurants. 
+
+            <h2> Methodology </h2>
+
+            <h3> Classifier Selection </h3>
+
+            <p> To solve this problem, we utilized the <code> sklearn </code> set of machine classifiers. At first, we messed around with almost every classifier </p>
+
+            <h3> Data Choice <h3>
+            <h3> Training and Test Data <h3>
+
+            
+
+            <h2> Results </h2>
+
+                <h3> Predictions </h3>
+
+                <h3> Evaluations </h3>
+
+            <p>
+
+            </p>
+
             </div>
 
             <div id='clouds'></div>
 
-            <!--
-            <h2></h2>
-			<p>
-
-			</p>
-			-->
+            
+            
+			
 
         <div class="col-md-2"></div>
     </div>
@@ -30,6 +65,8 @@
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="static/d3.layout.cloud.js"></script>
     <script src="word_cloud.js"></script>
+
+
 
 </body>
 </html>
