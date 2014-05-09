@@ -145,8 +145,7 @@ class VotingClassifier(object):
         for classifier, prediction in predictions.items():
             for class_ in prediction:
                 weighted[class_] += self.weights[classifier]
-        return [ class_ for class_,_ in sorted(weighted.items(), key = lambda item:item[1]) ]:
-
+        return [ class_ for class_,_ in sorted(weighted.items(), key = lambda item:item[1]) ]
         # out =  [class_ for class_,_ in sorted(Counter(chain(*filtered_predictions)).items(),key = lambda item: item[1], reverse = True)]
         print str(filtered_predictions) + " ----> " + str(out)
         return out
@@ -204,20 +203,14 @@ def main():
     i = 0
     for line in review_file:
         if opts.first != None and i > opts.first: break
-        i+=1
+        i += 1
         review = json.loads(line)
         # check if this is a review for one of the restuarants with labeled categories
         if review['business_id'] in bids_to_categories:
             name = bids_to_names[review['business_id']]
             reviews.append(review['text'] + " " + name)
-            # reviews.append(review['text'])
             categories = bids_to_categories[review['business_id']]
             labels.append(categories)
-
-    # shrink dataset
-    if opts.first is not None:
-        reviews = reviews[:opts.first]
-        labels = labels[:opts.first]
 
     # count number of reviews for each label
     num_for_label = defaultdict(int)
