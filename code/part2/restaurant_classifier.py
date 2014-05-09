@@ -172,6 +172,7 @@ def main():
     parser.add_argument('-top', type=int, help='Number of top features to show')
     parser.add_argument('-first', type=int, help='Number of reviews to use')
     parser.add_argument('-c', '--classifier', help='Classifier to use. Options are: RF, NB, LR, LOG')
+    parser.add_argument('-o', '--output', help='Wordcloud output file dstination')
     opts = parser.parse_args()
     ##
 
@@ -357,11 +358,11 @@ def main():
         print "-- Informative Features -- " + str(timer.next())
         # print top n most informative features for positive and negative classes
         print "Top", opts.top, "most informative features:"
-        print_top(opts.top, vectorizer, classifier)
+        print_top(opts.top, vectorizer, classifier, opts.output)
     ############################################################
 
 
-def print_top(num, vectorizer, classifier):
+def print_top(num, vectorizer, classifier, output = None):
     # pdb.set_trace()
     try:
         classifier.coef_
@@ -383,11 +384,17 @@ def print_top(num, vectorizer, classifier):
     # pdb.set_trace()
     """Prints features with the highest coefficient values, per class"""
     feature_names = vectorizer.get_feature_names()
-    # output_obj = []
+    output_obj = {}
     for i, class_label in enumerate(classifier.classes_):
         top_n = numpy.argsort(classifier.coef_[i])[-num:]
+        # for text, coefficient in zip(feature_names, classifier.coef_[i]):
+            # pdb.set_trace()
+        output_obj[class_label] = [{ "text" : text, "coefficient" : coefficient} for text, coefficient in zip(feature_names, list(classifier.coef_[i]))][-20:]
         # output_obj[class_label]
         print "%s: %s" % (class_label, " ".join(feature_names[j] for j in top_n))
+    with open(output,"w") as output_file:
+        # pdb.set_trace()
+        output_file.write(json.dumps(output_obj))
 
 if __name__ == '__main__':
     main()
