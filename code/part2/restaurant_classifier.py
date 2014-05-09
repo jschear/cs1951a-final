@@ -378,7 +378,7 @@ def print_top(num, vectorizer, classifier, output = None):
         top_n = numpy.argsort(classifier.coef_[i])[-num:]
         # for text, coefficient in zip(feature_names, classifier.coef_[i]):
             # pdb.set_trace()
-        output_obj[class_label] = [{ "text" : text, "coefficient" : coefficient} for text, coefficient in zip(feature_names, list(classifier.coef_[i]))][-20:]
+        output_obj[class_label] = [{ "text" : text, "coefficient" : coefficient} for text, coefficient in sorted(zip(feature_names, list(classifier.coef_[i])), key = lambda item: item[1])][-20:]
         # output_obj[class_label]
         print "%s: %s" % (class_label, " ".join(feature_names[j] for j in top_n))
     with open(output,"w") as output_file:
