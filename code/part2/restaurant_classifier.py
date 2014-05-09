@@ -107,7 +107,7 @@ class VotingClassifier(object):
 
     def fit(self, features, labels):
         for classifier in self.classifiers:
-            print '    -- Training ' + str(classifier.__class__.__name__) + " -- " + str(timer.next())
+            print '    -- Training ' + str(classifier.estimator_.__class__.__name__) + " -- " + str(timer.next())
             classifier.fit(features, labels)
 
     def predict(self, features):
@@ -135,25 +135,24 @@ class VotingClassifier(object):
         filtered_predictions = filter(lambda prediction: len(prediction) > 0, predictions)
         out = []
         if len(filtered_predictions) == 0:
-            print str(filtered_predictions) + " ----> " + str(out)
+            # print str(filtered_predictions) + " ----> " + str(out)
             return out
-        output_length = math.ceil(sum(map(len,filtered_predictions))/len(filtered_predictions))
+        output_length = int(round(sum(map(len,filtered_predictions))/len(filtered_predictions)))
         if output_length == 0:
-            print str(filtered_predictions) + " ----> " + str(out)
-            return out
+            output_length = 1
+            # print str(filtered_predictions) + " ----> " + str(out)
+
         weighted = defaultdict(float)
-        for classifier, prediction in predictions.items():
+        for classifier, prediction in zip(classifiers,predictions):
             for class_ in prediction:
                 weighted[class_] += self.weights[classifier]
-        return [ class_ for class_,_ in sorted(weighted.items(), key = lambda item:item[1]) ]
-        # out =  [class_ for class_,_ in sorted(Counter(chain(*filtered_predictions)).items(),key = lambda item: item[1], reverse = True)]
-        print str(filtered_predictions) + " ----> " + str(out)
+
+        out = [ class_ for class_,_ in sorted(weighted.items(), key = lambda item:item[1], reverse = True) ][:output_length]
+        # print str(predictions) + " ----> " + str(out)
         return out
-
-
-
-
-
+        # out =  [class_ for class_,_ in sorted(Counter(chain(*filtered_predictions)).items(),key = lambda item: item[1], reverse = True)]
+        # print str(filtered_predictions) + " ----> " + str(out)
+        # return out
 
 
 
@@ -168,6 +167,7 @@ def main():
     parser.add_argument('-top', type=int, help='Number of top features to show')
     parser.add_argument('-first', type=int, help='Number of reviews to use')
     parser.add_argument('-c', '--classifier', help='Classifier to use. Options are: RF, NB, LR, LOG')
+    parser.add_argument('-o', '--output', help='Wordcloud output file dstination')
     opts = parser.parse_args()
     ##
 
@@ -259,14 +259,13 @@ def main():
     elif opts.classifier == 'SVC':
         classifier = OneVsRestClassifier(LinearSVC())
     elif opts.classifier == 'LR':
-        classifier = OneVsRestClassifier(LogisticRegression())
+        params = { "intercept_scaling": 2.0, "dual": False, "C": 1.0, "dual" : False }
+        classifier = OneVsRestClassifier(LogisticRegression(**params))
     elif opts.classifier == 'KN':
         classifier = KNeighborsClassifier()
     elif opts.classifier == 'PPL':
         # classifier = Pipeline([('svm', LinearSVC()), ('lr', LogisticRegression())]) #takes forever
         classifier = Pipeline([('svm', LinearSVC()),('lr', OneVsRestClassifier(LogisticRegression()))])
-    elif opts.classifier == 'LOG':
-        classifier = OneVsRestClassifier(LogisticRegression())
     elif opts.classifier == 'VOT':
         classifiers = [OneVsRestClassifier(LogisticRegression()), OneVsRestClassifier(BernoulliNB()), OneVsRestClassifier(LinearSVC())]
         weights = dict(zip(classifiers,[ 1.0, 0.8, 0.6 ]))
@@ -348,11 +347,11 @@ def main():
         print "-- Informative Features -- " + str(timer.next())
         # print top n most informative features for positive and negative classes
         print "Top", opts.top, "most informative features:"
-        print_top(opts.top, vectorizer, classifier)
+        print_top(opts.top, vectorizer, classifier, opts.output)
     ############################################################
 
 
-def print_top(num, vectorizer, classifier):
+def print_top(num, vectorizer, classifier, output = None):
     # pdb.set_trace()
     try:
         classifier.coef_
@@ -374,9 +373,17 @@ def print_top(num, vectorizer, classifier):
     # pdb.set_trace()
     """Prints features with the highest coefficient values, per class"""
     feature_names = vectorizer.get_feature_names()
+    output_obj = {}
     for i, class_label in enumerate(classifier.classes_):
         top_n = numpy.argsort(classifier.coef_[i])[-num:]
+        # for text, coefficient in zip(feature_names, classifier.coef_[i]):
+            # pdb.set_trace()
+        output_obj[class_label] = [{ "text" : text, "coefficient" : coefficient} for text, coefficient in zip(feature_names, list(classifier.coef_[i]))][-20:]
+        # output_obj[class_label]
         print "%s: %s" % (class_label, " ".join(feature_names[j] for j in top_n))
+    with open(output,"w") as output_file:
+        # pdb.set_trace()
+        output_file.write(json.dumps(output_obj))
 
 if __name__ == '__main__':
     main()
