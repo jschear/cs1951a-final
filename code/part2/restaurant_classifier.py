@@ -98,8 +98,11 @@ timer = time_generator()
 
 class VotingClassifier(object):
 
-    def __init__(self,classifiers):
+    def __init__(self, classifiers, weights = None):
         self.classifiers = classifiers
+        if weights == None:
+            weights = { classifier : 1.0 for classifier in self.classifiers }
+        self.weights = weights
         self.num_classifiers = len(classifiers)
 
     def fit(self, features, labels):
@@ -138,7 +141,13 @@ class VotingClassifier(object):
         if output_length == 0:
             print str(filtered_predictions) + " ----> " + str(out)
             return out
-        out =  [class_ for class_,_ in sorted(Counter(chain(*filtered_predictions)).items(),key = lambda item: item[1], reverse = True)]
+        weighted = defaultdict(float)
+        for classifier, prediction in predictions.items():
+            for class_ in prediction:
+                weighted[class_] += self.weights[classifier]
+        return [ class_ for class_,_ in sorted(weighted.items(), key = lambda item:item[1]) ]:
+
+        # out =  [class_ for class_,_ in sorted(Counter(chain(*filtered_predictions)).items(),key = lambda item: item[1], reverse = True)]
         print str(filtered_predictions) + " ----> " + str(out)
         return out
 
@@ -269,7 +278,9 @@ def main():
     elif opts.classifier == 'LOG':
         classifier = OneVsRestClassifier(LogisticRegression())
     elif opts.classifier == 'VOT':
-        classifier = VotingClassifier([OneVsRestClassifier(LogisticRegression()), OneVsRestClassifier(BernoulliNB()), OneVsRestClassifier(LinearSVC())])
+        classifiers = [OneVsRestClassifier(LogisticRegression()), OneVsRestClassifier(BernoulliNB()), OneVsRestClassifier(LinearSVC())]
+        weights = dict(zip(classifiers,[ 1.0, 0.8, 0.6 ]))
+        classifier = VotingClassifier(classifiers, weights)
     else:
         print "Invalid classifier " + str(opts.classifier)
         return
@@ -303,10 +314,10 @@ def main():
     # cv = 2
 
     # print "-- Cross-Validating with " + str(cv) + " folds -- "
-    cv = 4
-    scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
-        scoring='accuracy', cv = cv, n_jobs=cv) # passing integer for cv uses StratifiedKFold where k = integer
-    print scores, scores.mean()
+    # cv = 4
+    # scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
+    #     scoring='accuracy', cv = cv, n_jobs=cv) # passing integer for cv uses StratifiedKFold where k = integer
+    # print scores, scores.mean()
 
     #scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
     #    scoring='accuracy', cv=5, n_jobs=-1)
@@ -336,8 +347,10 @@ def print_top(num, vectorizer, classifier):
         for name, classifier in classifier.named_steps.items():
             print name
             print_top(10, vectorizer, classifier)
+
     if type(classifier) == RandomForestClassifier:
         classifier = classifier.estimator
+
     if type(classifier) == VotingClassifier:
         for classifier_ in classifier.classifiers:
             print_top(num, vectorizer, classifier_)
