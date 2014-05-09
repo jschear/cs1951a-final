@@ -3,19 +3,22 @@ import sys
 import csv
 import argparse
 import json
-from collections import defaultdict
+from collections import defaultdict, Counter
 from operator import itemgetter
 
 from pprint import pprint
 
 import util
 
-import pdb
+from datetime import datetime
 
+import pdb
+import math
 import numpy
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import *
 from sklearn import cross_validation
+from itertools import chain
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsOneClassifier
@@ -26,6 +29,7 @@ from sklearn.naive_bayes import BernoulliNB
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
 
 from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
@@ -85,6 +89,73 @@ Reviews:
         review['business_id']
         review['text']
 '''
+def time_generator():
+    start_time = datetime.now()
+    while(True):
+        yield datetime.now() - start_time
+timer = time_generator()
+
+
+class VotingClassifier(object):
+
+    def __init__(self, classifiers, weights = None):
+        self.classifiers = classifiers
+        if weights == None:
+            weights = { classifier : 1.0 for classifier in self.classifiers }
+        self.weights = weights
+        self.num_classifiers = len(classifiers)
+
+    def fit(self, features, labels):
+        for classifier in self.classifiers:
+            print '    -- Training ' + str(classifier.__class__.__name__) + " -- " + str(timer.next())
+            classifier.fit(features, labels)
+
+    def predict(self, features):
+
+        predictions = {}
+        for classifier in self.classifiers:
+            print '    -- Predicting with ' + str(classifier.__class__.__name__) + " -- " + str(timer.next())
+            predictions[classifier] = classifier.predict(features)
+
+        # predictions = { classifier: classifier.predict(features) for classifier in self.classifiers }
+        out = []
+        print '    -- Merging Predictions -- ' + str(timer.next())
+        l = features.shape[0]
+        for i, feature in enumerate(features):
+            # print i, l
+            if  i % (l//5) == 0:
+                print "{0:.0f}".format((i/l)*100.0) + "%"
+            # pdb.set_trace()
+            feature_predictions = { classifier : predictions[classifier][i] for classifier in self.classifiers }
+            out.append(self.merge(feature_predictions))
+        return out
+
+    def merge(self, predictions):
+        classifiers, predictions = [classifier for classifier,_ in predictions.items()], [prediction for _,prediction in predictions.items()]
+        filtered_predictions = filter(lambda prediction: len(prediction) > 0, predictions)
+        out = []
+        if len(filtered_predictions) == 0:
+            print str(filtered_predictions) + " ----> " + str(out)
+            return out
+        output_length = math.ceil(sum(map(len,filtered_predictions))/len(filtered_predictions))
+        if output_length == 0:
+            print str(filtered_predictions) + " ----> " + str(out)
+            return out
+        weighted = defaultdict(float)
+        for classifier, prediction in predictions.items():
+            for class_ in prediction:
+                weighted[class_] += self.weights[classifier]
+        return [ class_ for class_,_ in sorted(weighted.items(), key = lambda item:item[1]) ]:
+
+        # out =  [class_ for class_,_ in sorted(Counter(chain(*filtered_predictions)).items(),key = lambda item: item[1], reverse = True)]
+        print str(filtered_predictions) + " ----> " + str(out)
+        return out
+
+
+
+
+
+
 
 
 
@@ -109,8 +180,9 @@ def main():
 
 
     # load business and categories
-    all_categories = set(line.strip() for line in open(opts.categories))
+    all_categories = set(line.strip() for line in open(opts.categories) if line[0] != "#")
     bids_to_categories = {}
+    bids_to_names = {}
     businesses_file = open(opts.businesses)
     for line in businesses_file:
         business = json.loads(line)
@@ -119,12 +191,13 @@ def main():
             categories = filter(lambda x: x in all_categories, categories)
             if len(categories) > 0:
                 bids_to_categories[business['business_id']] = categories
+                bids_to_names[business['business_id']] = business['name']
     print "Examining " + str(len(bids_to_categories)) + " Businesses"
 
     #pprint(bids_to_categories)
 
     # Load training review text
-    print "-- Extracting Features --"
+    print "-- Extracting Features -- " + str(timer.next())
     reviews = []
     labels = []
     review_file = open(opts.reviews)
@@ -135,7 +208,9 @@ def main():
         review = json.loads(line)
         # check if this is a review for one of the restuarants with labeled categories
         if review['business_id'] in bids_to_categories:
-            reviews.append(review['text'])
+            name = bids_to_names[review['business_id']]
+            reviews.append(review['text'] + " " + name)
+            # reviews.append(review['text'])
             categories = bids_to_categories[review['business_id']]
             labels.append(categories)
 
@@ -151,8 +226,8 @@ def main():
             num_for_label[label] = num_for_label[label] + 1
 
     num_for_label = sorted(num_for_label.items(), key=lambda x: x[1], reverse=True)
-    print 'Number of reviews for each label:'
-    print '\n'.join(map(lambda x: x[0] + ": " + str(x[1]), num_for_label))
+    # print 'Number of reviews for each label:'
+    # print '\n'.join(map(lambda x: x[0] + ": " + str(x[1]), num_for_label))
 
     # Get training features using vectorizer
     assert len(reviews) == len(labels)
@@ -160,22 +235,25 @@ def main():
 
     train_features = vectorizer.fit_transform(reviews[:splitindex])
     test_features = vectorizer.transform(reviews[splitindex:])
+    del reviews
 
     # Transform training labels and test labels to numpy array (numpy.array)
     train_labels = numpy.array(labels[:splitindex])
     test_labels = numpy.array(labels[splitindex:])
+    del labels
     ############################################################
 
     # test_labels = numpy.array(test_labels)
 
 
     ##### TRAIN THE MODEL ######################################
-    print "-- Training Classifier --"
+    print "-- Training Classifier -- " + str(timer.next())
 
     # try n_jobs = -1 for all of these once we get everything working
     # some of these options don't really work...
+    #add a voting algorithm using SVC, LogReg, and BNB? Weight them according to self calculated accuracy?
     if opts.classifier == 'RF':
-        classifier = RandomForestClassifier( verbose = 0, max_features = 'log2', max_depth = 5)
+        classifier = OneVsRestClassifier(RandomForestClassifier())
         train_features = train_features.toarray()
         test_features = test_features.toarray()
 
@@ -196,6 +274,10 @@ def main():
         classifier = Pipeline([('svm', LinearSVC()),('lr', OneVsRestClassifier(LogisticRegression()))])
     elif opts.classifier == 'LOG':
         classifier = OneVsRestClassifier(LogisticRegression())
+    elif opts.classifier == 'VOT':
+        classifiers = [OneVsRestClassifier(LogisticRegression()), OneVsRestClassifier(BernoulliNB()), OneVsRestClassifier(LinearSVC())]
+        weights = dict(zip(classifiers,[ 1.0, 0.8, 0.6 ]))
+        classifier = VotingClassifier(classifiers, weights)
     else:
         print "Invalid classifier " + str(opts.classifier)
         return
@@ -206,7 +288,7 @@ def main():
 
     ###### VALIDATE THE MODEL ##################################
     # Print training mean accuracy using 'score'
-    print "-- Testing --"
+    print "-- Testing -- " + str(timer.next())
     # print "Mean accuracy on training data:", classifier.score(train_features, train_labels)
     predicted_labels = classifier.predict(test_features)
     print classification_report(test_labels, predicted_labels)
@@ -237,9 +319,13 @@ def main():
     print "Jaccard similarity:"
     print jaccard_similarity_score(test_labels, predicted_labels)
 
+    def evaluate(test_labels, predicted_labels):
+        print classification_report(test_labels, predicted_labels)
+        # pdb.set_trace()
+        for evaluation_function in [accuracy_score, f1_score, lambda test_labels, predicted_labels : fbeta_score(test_labels, predicted_labels, .1), hamming_loss, jaccard_similarity_score, precision_score, recall_score, zero_one_loss]:
+            print evaluation_function.__name__ + ":" + str(evaluation_function(test_labels, predicted_labels))
 
-    # 1 point for each correct, 1 for
-
+    evaluate(test_labels, predicted_labels)
     # for test_feature, label in zip(test_features, predicted_labels)[1:20]:
     #     # pdb.set_trace()
     #     print test_features, label
@@ -251,9 +337,11 @@ def main():
     # cv = 2
 
     # print "-- Cross-Validating with " + str(cv) + " folds -- "
+    # cv = 4
     # scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
     #     scoring='accuracy', cv = cv, n_jobs=cv) # passing integer for cv uses StratifiedKFold where k = integer
     # print scores, scores.mean()
+
     #scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
     #    scoring='accuracy', cv=5, n_jobs=-1)
 
@@ -263,8 +351,8 @@ def main():
 
 
     ##### EXAMINE THE MODEL ####################################
-    print "-- Informative Features --"
     if opts.top is not None and opts.classifier != "RF":
+        print "-- Informative Features -- " + str(timer.next())
         # print top n most informative features for positive and negative classes
         print "Top", opts.top, "most informative features:"
         print_top(opts.top, vectorizer, classifier)
@@ -272,10 +360,24 @@ def main():
 
 
 def print_top(num, vectorizer, classifier):
+    # pdb.set_trace()
+    try:
+        classifier.coef_
+    except Exception:
+        print "Unable to print top " + str(num) + " results"
+        return
     if type(classifier) == Pipeline:
         for name, classifier in classifier.named_steps.items():
             print name
             print_top(10, vectorizer, classifier)
+
+    if type(classifier) == RandomForestClassifier:
+        classifier = classifier.estimator
+
+    if type(classifier) == VotingClassifier:
+        for classifier_ in classifier.classifiers:
+            print_top(num, vectorizer, classifier_)
+        return
     # pdb.set_trace()
     """Prints features with the highest coefficient values, per class"""
     feature_names = vectorizer.get_feature_names()

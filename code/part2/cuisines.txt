@@ -5,7 +5,7 @@ South African
 American (New)
 American (Traditional)
 Arabian
-Argentine
+#Argentine
 Armenian
 Asian Fusion
 Australian
@@ -20,9 +20,9 @@ Breakfast & Brunch
 British
 Buffets
 Burgers
-Burmese
+#Burmese
 Cafes
-Cafeteria
+#Cafeteria
 Cajun/Creole
 Cambodian
 Caribbean
@@ -34,7 +34,7 @@ Catalan
 Cheesesteaks
 Chicken Wings
 Chinese
-Cantonese
+#Cantonese
 Dim Sum
 Shanghainese
 Szechuan
@@ -64,19 +64,19 @@ Hot Pot
 Hungarian
 Iberian
 Indian
-Indonesian
+#Indonesian
 Irish
 Italian
 Japanese
 Ramen
 Korean
-Kosher
+#Kosher
 Laotian
 Latin American
-Colombian
+#Colombian
 Salvadoran
 Venezuelan
-Live/Raw Food
+#Live/Raw Food
 Malaysian
 Mediterranean
 Falafel
@@ -93,7 +93,7 @@ Peruvian
 Pizza
 Polish
 Portuguese
-Russian
+#Russian
 Salad
 Sandwiches
 Scandinavian
