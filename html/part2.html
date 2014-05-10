@@ -64,10 +64,22 @@
 
 
             <h2>Results</h2>
-
                 <h3>Predictions</h3>
 
                 <h3>Evaluations</h3>
+                <p>Evaluating a multilabel classifier is a slightly more nuanced problem than evaluating a standard binary classifier. The notion of a positive or negative classification of any one sample is complicated because there is a set of correct labels and a set of predicted labels. Some metrics, like scikit learn's <code>accuracy_code</code>, use zero-one accuracy, meaning that the entire set of predicted labels must match the set of true labels.</p>
+                <p>To help judge the effectiveness of our classifier, we used multiple metrics.</p>
+
+                <p>Precision, Recall, and F-Score</p>
+                <p>These
+                <ul>
+                    <li>'micro': Calculate metrics globally by counting the total true positives, false negatives and false positives.</li>
+                    <li>'macro': Calculate metrics for each label, and find their unweighted mean. This does not take label imbalance into account.</li>
+                    <li>'weighted': Calculate metrics for each label, and find their average, weighted by support (the number of true instances for each label). This alters ‘macro’ to account for label imbalance; it can result in an F-score that is not between precision and recall.</li>
+                    <li>'samples': Calculate metrics for each instance, and find their average (only meaningful for multilabel classification where this differs from accuracy_score).</li>
+                </p>
+
+                <p>In multilabel classification, the Hamming loss is different from the subset zero-one loss. The zero-one loss considers the entire set of labels for a given sample incorrect if it does entirely match the true set of labels. Hamming loss is more forgiving in that it penalizes the individual labels.</p>
 
                 <h3>Visualizations</h3>
                 <p>For each category, we pulled out the top 20 most discerning features. This helped us confirm that our classifier was making logical decisions (although these are features after stemming, so some are difficult understand). We also modified our stopwords list after examining some important words which we believed shouldn't be included as features.</p>
