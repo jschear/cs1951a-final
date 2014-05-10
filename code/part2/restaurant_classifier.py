@@ -278,11 +278,11 @@ def main():
     ############################################################
 
     ##### EXAMINE THE MODEL ####################################
-    if opts.top is not None and opts.classifier != "RF":
-        print "-- Informative Features -- " + str(timer.next())
-        # print top n most informative features for positive and negative classes
-        print "Top", opts.top, "most informative features:"
-        print_top(opts.top, vectorizer, classifier, opts.output)
+    # if opts.top is not None and opts.classifier != "RF":
+    #     print "-- Informative Features -- " + str(timer.next())
+    #     # print top n most informative features for positive and negative classes
+    #     print "Top", opts.top, "most informative features:"
+    #     print_top(opts.top, vectorizer, classifier, opts.output)
     ############################################################
 
     ###### TEST THE MODEL ##################################
@@ -291,7 +291,6 @@ def main():
     predicted_labels = classifier.predict(test_features)
     evaluate(test_labels, predicted_labels)
     ############################################################
-
 
 
 def evaluate(test_labels, predicted_labels):
@@ -347,9 +346,9 @@ def print_top(num, vectorizer, classifier, output = None):
         output_obj[class_label] = [{ "text" : text, "coefficient" : coefficient} for text, coefficient in sorted(zip(feature_names, list(classifier.coef_[i])), key = lambda item: item[1])][-20:]
         # output_obj[class_label]
         print "%s: %s" % (class_label, " ".join(feature_names[j] for j in top_n))
-    with open(output,"w") as output_file:
-        # pdb.set_trace()
-        output_file.write(json.dumps(output_obj))
+    # with open(output,"w") as output_file:
+    #     # pdb.set_trace()
+    #     output_file.write(json.dumps(output_obj))
 
 if __name__ == '__main__':
     main()
