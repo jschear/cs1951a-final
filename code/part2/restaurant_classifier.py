@@ -278,11 +278,11 @@ def main():
     ############################################################
 
     ##### EXAMINE THE MODEL ####################################
-    if opts.top is not None and opts.classifier != "RF":
-        print "-- Informative Features -- " + str(timer.next())
-        # print top n most informative features for positive and negative classes
-        print "Top", opts.top, "most informative features:"
-        print_top(opts.top, vectorizer, classifier, opts.output)
+    # if opts.top is not None and opts.classifier != "RF":
+    #     print "-- Informative Features -- " + str(timer.next())
+    #     # print top n most informative features for positive and negative classes
+    #     print "Top", opts.top, "most informative features:"
+    #     print_top(opts.top, vectorizer, classifier, opts.output)
     ############################################################
 
     ###### TEST THE MODEL ##################################
@@ -291,20 +291,6 @@ def main():
     predicted_labels = classifier.predict(test_features)
     evaluate(test_labels, predicted_labels)
     ############################################################
-
-    def output_random_predictions(output_file, n = 50):
-        with open(output_file,"w") as outfile:
-            random.seed(datetime.now())
-            zipped = zip(reviews[splitindex:],test_labels, predicted_labels)
-            zipped = filter(lambda item: len(item[2]) > 1 and len(item[1]) > 1, zipped)
-            random.shuffle(zipped)
-            out = ""
-            for review_text, actual_label, predicted_label in zipped[:n]:
-                s = str(review_text) + "\t" + str(actual_label) + "\t" + str(predicted_label) + "\t"
-                out += s
-            outfile.write(s)
-    print "-- Outputting Predictions --"
-    output_random_predictions("../../html/htmldata/predictions.txt",n=50)
 
 
 def evaluate(test_labels, predicted_labels):
@@ -360,9 +346,9 @@ def print_top(num, vectorizer, classifier, output = None):
         output_obj[class_label] = [{ "text" : text, "coefficient" : coefficient} for text, coefficient in sorted(zip(feature_names, list(classifier.coef_[i])), key = lambda item: item[1])][-20:]
         # output_obj[class_label]
         print "%s: %s" % (class_label, " ".join(feature_names[j] for j in top_n))
-    with open(output,"w") as output_file:
-        # pdb.set_trace()
-        output_file.write(json.dumps(output_obj))
+    # with open(output,"w") as output_file:
+    #     # pdb.set_trace()
+    #     output_file.write(json.dumps(output_obj))
 
 if __name__ == '__main__':
     main()
