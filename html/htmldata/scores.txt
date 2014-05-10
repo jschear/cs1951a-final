@@ -1,0 +1,83 @@
+    precision    recall  f1-score   support
+
+     Afghan       0.85      0.38      0.52        29
+    African       0.98      0.87      0.92        55
+American (New)       0.90      0.82      0.86      7048
+American (Traditional)       0.84      0.73      0.78      5531
+Asian Fusion       0.89      0.78      0.83      1335
+   Barbeque       0.95      0.87      0.91      1113
+     Basque       1.00      0.37      0.54        30
+ Brasseries       1.00      0.83      0.91        30
+  Brazilian       0.97      0.92      0.94        62
+Breakfast & Brunch       0.87      0.80      0.83      4596
+    British       0.99      0.98      0.98       319
+    Buffets       0.92      0.83      0.88       922
+    Burgers       0.91      0.84      0.87      2948
+      Cafes       0.84      0.67      0.75       980
+Cajun/Creole       0.93      0.80      0.86       174
+  Cambodian       1.00      0.97      0.98        32
+  Caribbean       0.95      0.78      0.86       322
+Cheesesteaks       0.87      0.72      0.79       200
+Chicken Wings       0.77      0.65      0.70       368
+    Chinese       0.94      0.88      0.91      2303
+Comfort Food       0.85      0.51      0.63        89
+  Creperies       0.99      0.93      0.96       114
+      Cuban       1.00      0.87      0.93        99
+      Delis       0.87      0.78      0.82      1068
+    Dim Sum       0.95      0.73      0.82       132
+     Diners       0.82      0.58      0.68       466
+  Ethiopian       0.97      0.91      0.94        67
+  Fast Food       0.80      0.66      0.72      1382
+   Filipino       0.98      0.70      0.82        61
+Fish & Chips       0.94      0.78      0.85       117
+     Fondue       0.97      0.93      0.95        95
+ Food Court       0.86      0.40      0.55        30
+Food Stands       1.00      0.43      0.60        28
+     French       0.97      0.86      0.91       478
+ Gastropubs       0.92      0.78      0.85       351
+     German       1.00      0.90      0.95       127
+Gluten-Free       0.88      0.74      0.80       609
+      Greek       0.92      0.84      0.88       762
+      Halal       0.88      0.65      0.75       100
+   Hawaiian       0.96      0.89      0.92       366
+   Hot Dogs       0.88      0.75      0.81       608
+     Indian       0.99      0.96      0.97       481
+      Irish       0.98      0.91      0.94       358
+    Italian       0.93      0.89      0.91      4918
+   Japanese       0.93      0.89      0.91      1803
+     Korean       0.92      0.75      0.83       241
+Latin American       0.91      0.87      0.89       564
+   Lebanese       1.00      0.66      0.79        47
+Mediterranean       0.91      0.82      0.86      1581
+    Mexican       0.96      0.93      0.95      5837
+Middle Eastern       0.86      0.75      0.80       415
+Modern European       1.00      0.80      0.89        51
+  Mongolian       0.86      0.90      0.88       113
+   Moroccan       1.00      0.91      0.95        23
+  Pakistani       0.86      0.73      0.79       157
+Persian/Iranian       0.91      0.83      0.87        83
+   Peruvian       0.96      0.83      0.89        29
+      Pizza       0.95      0.92      0.94      4871
+     Polish       1.00      0.86      0.93        74
+      Salad       0.76      0.56      0.64       966
+ Sandwiches       0.83      0.73      0.78      4435
+Scandinavian       1.00      0.83      0.91        66
+    Seafood       0.89      0.78      0.83      1411
+  Soul Food       0.98      0.89      0.93       302
+       Soup       0.99      0.87      0.92       172
+   Southern       0.97      0.89      0.93       346
+    Spanish       1.00      0.71      0.83       103
+Steakhouses       0.95      0.89      0.92      1695
+ Sushi Bars       0.95      0.94      0.94      2190
+   Szechuan       0.69      0.71      0.70       127
+  Taiwanese       0.91      0.84      0.88        38
+ Tapas Bars       1.00      0.40      0.57        43
+Tapas/Small Plates       0.99      0.85      0.91       170
+    Tex-Mex       0.84      0.73      0.78       548
+       Thai       0.95      0.94      0.95      1253
+    Turkish       1.00      0.57      0.73        35
+      Vegan       0.84      0.69      0.76       592
+ Vegetarian       0.87      0.79      0.83      1365
+ Vietnamese       0.97      0.92      0.94       889
+
+avg / total       0.90      0.83      0.86     73938
