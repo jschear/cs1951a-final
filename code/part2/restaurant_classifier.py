@@ -38,6 +38,9 @@ from sklearn.feature_selection import f_regression
 
 from tokenizer import Tokenizer
 
+import random
+random.seed('ebenizzyjschear') #lol
+
 '''
 JSON Structure
 
@@ -200,6 +203,8 @@ def main():
     labels = []
     review_file = open(opts.reviews)
     i = 0
+    review_file = [line for line in review_file]
+    random.shuffle(review_file)
     for line in review_file:
         if opts.first != None and i > opts.first: break
         i += 1
@@ -227,15 +232,11 @@ def main():
 
     train_features = vectorizer.fit_transform(reviews[:splitindex])
     test_features = vectorizer.transform(reviews[splitindex:])
-    del reviews
 
     # Transform training labels and test labels to numpy array (numpy.array)
     train_labels = numpy.array(labels[:splitindex])
     test_labels = numpy.array(labels[splitindex:])
-    del labels
     ############################################################
-
-    # test_labels = numpy.array(test_labels)
 
 
     ##### TRAIN THE MODEL ######################################
@@ -291,6 +292,20 @@ def main():
     evaluate(test_labels, predicted_labels)
     ############################################################
 
+    def output_random_predictions(output_file, n = 50):
+        with open(output_file,"w") as outfile:
+            random.seed(datetime.now())
+            zipped = zip(reviews[splitindex:],test_labels, predicted_labels)
+            zipped = filter(lambda item: len(item[2]) > 1 and len(item[1]) > 1, zipped)
+            random.shuffle(zipped)
+            out = ""
+            for review_text, actual_label, predicted_label in zipped[:n]:
+                s = str(review_text) + "\t" + str(actual_label) + "\t" + str(predicted_label) + "\t"
+                out += s
+            outfile.write(s)
+    print "-- Outputting Predictions --"
+    output_random_predictions("../../html/htmldata/predictions.txt",n=50)
+
 
 def evaluate(test_labels, predicted_labels):
     print classification_report(test_labels, predicted_labels)
@@ -302,28 +317,17 @@ def evaluate(test_labels, predicted_labels):
         print "Micro:", evaluation_function(test_labels, predicted_labels, average = 'micro')
         print "Samples:", evaluation_function(test_labels, predicted_labels, average = 'samples')
 
-    print "Accuracy score:"
+    print "Accuracy score: "
     print accuracy_score(test_labels, predicted_labels)
 
-    print "Hamming loss:"
+    print "Hamming loss: "
     print hamming_loss(test_labels, predicted_labels)
 
-    print "Zero-one loss"
+    print "Zero-one loss: "
     print zero_one_loss(test_labels, predicted_labels)
 
-    print "Jaccard similarity:"
+    print "Jaccard similarity: "
     print jaccard_similarity_score(test_labels, predicted_labels)
-
-    cm = confusion_matrix(test_labels, predicted_labels)
-    print(cm)
-
-    # Show confusion matrix in a separate window
-    pl.matshow(cm)
-    pl.title('Confusion matrix')
-    pl.colorbar()
-    pl.ylabel('True label')
-    pl.xlabel('Predicted label')
-    pl.show()
 
 
 def print_top(num, vectorizer, classifier, output = None):

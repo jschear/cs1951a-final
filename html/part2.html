@@ -19,25 +19,47 @@
             <div>
 
             <h2> Problem </h2>
-            <p>
-
-            In this study, we attempted to predict the category (specifically the cuisine) of restaurants in the dataset from the text of restaurant review and the name of the restaurant with high accuracy. We only attempted to predict a certain subset of business, those which were marked as "Restaurants" and whose other category labels contained cuisine types types. In all, there were 120 different classifications, ranging from American (New) and American (Traditional) to Dim Sum, Brazilian, Chicken Wings, Vegan, and Soul Food. We chose to do this because it represented an interesting challenge. It was both a contained problem, as cuisines will often have different key indicator words, and a difficult one, which involved multi-class training and multilabel classification.
-
-
-            </p>
+            <p>In this study, we attempted to predict the category (specifically the cuisine) of restaurants in the dataset from the text of restaurant review and the name of the restaurant with high accuracy. We only attempted to predict a certain subset of business, those which were marked as "Restaurants" and whose other category labels contained cuisine types types. In all, there were 120 different classifications, ranging from American (New) and American (Traditional) to Dim Sum, Brazilian, Chicken Wings, Vegan, and Soul Food. We chose to do this because it represented an interesting challenge. It was both a contained problem, as cuisines will often have different key indicator words, and a difficult one, which involved multi-class training and multilabel classification.</p>
 
             <h2>Hypothesis</h2>
 
             <p>We predict that for most restaurants (roughly 80%) on Yelp, their categories can be fairly accurately predicted by the text of their reviews and the name of the restaurants.</p>
 
             <h2> Methodology </h2>
-
+            <h3> Classification Fields </h3>
+            <p> We chose primarily to use the name of the restaurant and the text of the review as features, as they seemed to be the most suggestive of the cuisine of the restaurant. Choosing other fields such as price range and star rating would be making hard-to-justify assumptions about correlation of the data. Presuming that the cuisines correlate to review text is much more reasonable.</p>
             <h3> Classifier Selection </h3>
 
-            <p> To solve this problem, we utilized the <code>sklearn</code> set of machine classifiers. At first, we messed around with almost every classifier </p>
+            <p> To solve this problem, we utilized the machine-learning package <code>sklearn</code>, a python library that excels at creating classifiers. To perform multi-label classification we decided to use the One-Vs-Rest <a href = http://scikit-learn.org/stable/modules/generated/sklearn.multiclass.OneVsRestClassifier.html#sklearn.multiclass.OneVsRestClassifier> classifier </a>, a clssifier that implements the one-vs rest algorithm for any given classifier. The one versus rest algorithm treats each class as an independent binary classifier, training the same number of classifiers as we have classes. When attempting to classify, the one versus all classifier will predict the chances of those features being classified to every category, and pick the labels that are above a certain reasonable threshold. We chose the One-Vs-Rest classifier over One-vs-One, as it is widely used and much more time-efficient() <code> O(n_classes) </code> as opposed to <code> O(n_classes<sup>2</sup>) </code> The sklearn implementation of One-Vs-Rest takes in any classifier as a parameter, letting us choose which one to use.
+            </p>
 
-            <h3> Data Choice <h3>
-            <h3> Training and Test Data <h3>
+            <p>We tried a variety of classifiers at first. Among the ones we could get to work were the Linear Support Vector Classifier, Gaussian Naive Bayes, and Logistic Regression. Furthermore, we attempted a variety of other ones, including Random Forest Classifiers, Decision Tree Classifiers, and Pipeline classifiers. We had difficulty getting these to produce coherent results. The random forest classifier would often break on a segmentation fault or obliterate the computers memory, rendering the entire machine inoperable (we were running the classifiers on a macbook air with <code>8gb</code> of ram)  Finally, we created our own classifier, that implemented a simple voting algorithm. The voting algorithm classifier took the results of our three top-performing classifiers, (LinearSVC, Gaussian Naive Bayes, and Logistic Regression), and merged the results to choose the best ones. Specifically, it took the average length of the returned results (as different classifiers might return different numbers of labels of labels), and outputted that many of the most common results. We found that the voting algorithm was outperformed by logistic regression, yet those two did significantly better than the others. </p>
+
+
+            <h3> Data Selection </h3>
+               <p>  We only chose to examine cuisines with more than 100 reviews corresponding to them -- this left out the following:
+
+                <ul>
+                <li> Argentine </li>
+                <li> Burmese </li>
+                <li> Cafeteria </li>
+                <li> Cantonese </li>
+                <li> Indonesian </li>
+                <li> Kosher </li>
+                <li> Colombian </li>
+                <li> Live/Raw Food </li>
+                <li> Russian </li>
+                </ul>
+
+                We felt comfortable doing this as these classes did not have enough data to justify classification.
+                </p>
+
+            <h3> Data Partition </h3>
+            <p>
+
+            We chose to place <code>80%</code> of the data into training data, and the other <code>20%</code> into test data. We randomly partitioned it (using a consistent seed, as to be able to compare results). The results of that were no different than when we took the first <code>80%</code> for training and the last <code>20%</code> for test.
+
+            </p>
 
 
 
