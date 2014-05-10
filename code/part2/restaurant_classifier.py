@@ -36,7 +36,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_regression
 
-
 from tokenizer import Tokenizer
 
 '''
@@ -277,27 +276,31 @@ def main():
     classifier.fit(train_features, train_labels)
     ############################################################
 
+    ##### EXAMINE THE MODEL ####################################
+    if opts.top is not None and opts.classifier != "RF":
+        print "-- Informative Features -- " + str(timer.next())
+        # print top n most informative features for positive and negative classes
+        print "Top", opts.top, "most informative features:"
+        print_top(opts.top, vectorizer, classifier, opts.output)
+    ############################################################
 
-    ###### VALIDATE THE MODEL ##################################
-    # Print training mean accuracy using 'score'
+    ###### TEST THE MODEL ##################################
     print "-- Testing -- " + str(timer.next())
-    # print "Mean accuracy on training data:", classifier.score(train_features, train_labels)
+
     predicted_labels = classifier.predict(test_features)
+    evaluate(test_labels, predicted_labels)
+    ############################################################
+
+
+def evaluate(test_labels, predicted_labels):
     print classification_report(test_labels, predicted_labels)
-    # for evaluation_function in [accuracy_score, f1_score, lambda test_labels, predicted_labels : fbeta_score(test_labels, predicted_labels, .1), hamming_loss, jaccard_similarity_score, precision_score, recall_score, zero_one_loss]:
-    #     print evaluation_function.__name__ + ":" + str(evaluation_function(test_labels, predicted_labels))
 
-    print "Precision score"
-    print precision_score(test_labels, predicted_labels, average = None)
-    print precision_score(test_labels, predicted_labels, average = 'samples')
-
-    print "Recall scores:"
-    print recall_score(test_labels, predicted_labels, average = None)
-    print recall_score(test_labels, predicted_labels, average = 'samples')
-
-    print "f1 scores:"
-    print f1_score(test_labels, predicted_labels, average = None)
-    print f1_score(test_labels, predicted_labels, average = 'samples')
+    for evaluation_function in [precision_score, recall_score, f1_score]:
+        print evaluation_function.__name__
+        print "Weighted:", evaluation_function(test_labels, predicted_labels, average = 'weighted')
+        print "Macro:", evaluation_function(test_labels, predicted_labels, average = 'macro')
+        print "Micro:", evaluation_function(test_labels, predicted_labels, average = 'micro')
+        print "Samples:", evaluation_function(test_labels, predicted_labels, average = 'samples')
 
     print "Accuracy score:"
     print accuracy_score(test_labels, predicted_labels)
@@ -311,44 +314,16 @@ def main():
     print "Jaccard similarity:"
     print jaccard_similarity_score(test_labels, predicted_labels)
 
-    def evaluate(test_labels, predicted_labels):
-        print classification_report(test_labels, predicted_labels)
-        # pdb.set_trace()
-        for evaluation_function in [accuracy_score, f1_score, lambda test_labels, predicted_labels : fbeta_score(test_labels, predicted_labels, .1), hamming_loss, jaccard_similarity_score, precision_score, recall_score, zero_one_loss]:
-            print evaluation_function.__name__ + ":" + str(evaluation_function(test_labels, predicted_labels))
+    cm = confusion_matrix(test_labels, predicted_labels)
+    print(cm)
 
-    evaluate(test_labels, predicted_labels)
-    # for test_feature, label in zip(test_features, predicted_labels)[1:20]:
-    #     # pdb.set_trace()
-    #     print test_features, label
-
-    # TODO: Try the different metric here that are more interpretable for multilabel classification
-
-    # Perform 5 fold cross validation (cross_validation.cross_val_score) with scoring='accuracy'
-    # and print the mean score and std deviation
-    # cv = 2
-
-    # print "-- Cross-Validating with " + str(cv) + " folds -- "
-    # cv = 4
-    # scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
-    #     scoring='accuracy', cv = cv, n_jobs=cv) # passing integer for cv uses StratifiedKFold where k = integer
-    # print scores, scores.mean()
-
-    #scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
-    #    scoring='accuracy', cv=5, n_jobs=-1)
-
-    # print "Cross validation mean score:", numpy.mean(scores)
-    # print "Cross validation standard deviation:", numpy.std(scores)
-    ############################################################
-
-
-    ##### EXAMINE THE MODEL ####################################
-    if opts.top is not None and opts.classifier != "RF":
-        print "-- Informative Features -- " + str(timer.next())
-        # print top n most informative features for positive and negative classes
-        print "Top", opts.top, "most informative features:"
-        print_top(opts.top, vectorizer, classifier, opts.output)
-    ############################################################
+    # Show confusion matrix in a separate window
+    pl.matshow(cm)
+    pl.title('Confusion matrix')
+    pl.colorbar()
+    pl.ylabel('True label')
+    pl.xlabel('Predicted label')
+    pl.show()
 
 
 def print_top(num, vectorizer, classifier, output = None):
