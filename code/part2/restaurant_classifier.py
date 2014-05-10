@@ -294,12 +294,10 @@ def main():
             zipped = filter(lambda item: len(item[2]) > 1 and len(item[1]) > 1, zipped)
             random.shuffle(zipped)
             out = ""
-            for review_text, actual_label, predicted_label in zipped[:n]:
-                s = str(review_text) + "\t" + str(actual_label) + "\t" + str(predicted_label) + "\t"
-                out += s
-            outfile.write(s)
+            for review_text, actual_label, predicted_label in zipped:
+               pdb.set_trace()
     print "-- Output Predictions --"
-    output_random_predictions("../../html/htmldata/predictions.txt",n=50)
+    output_random_predictions("../../html/htmldata/predictions.txt", n=50)
 
 
 
