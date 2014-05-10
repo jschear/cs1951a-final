@@ -78,8 +78,6 @@ class SearchEngine:
             line = 0
             for row in reader:
                 line += 1
-                if line %1000 == 0:
-                    print line
                 token = row[0]
                 for item in row[1:]:
                     businessID, review_num, position = eval(item) #which is review_num, and which is position again?
@@ -101,9 +99,6 @@ class SearchEngine:
                 currindex = f.tell()
 
             self.data = SearchEngineData(index, index_file,to_cache = to_cache)
-
-        print "processed"
-
 
     def process_query(self,query,html = False):
         terms, businesses = self.find_results(query)
