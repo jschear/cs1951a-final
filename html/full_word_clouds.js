@@ -1,4 +1,4 @@
-// Word clouds
+// Full Word clouds
 
 var width = 450;
 var height = 400;
@@ -8,7 +8,7 @@ var valOf = function (d) {
   return parseFloat(d.coefficient);
 };
 
-d3.json("htmldata/word_cloud.json", function(error, data) {
+d3.json("htmldata/full_word_cloud.json", function(error, data) {
   generate_clouds(data);
 });
 

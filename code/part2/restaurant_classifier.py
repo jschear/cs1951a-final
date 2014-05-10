@@ -36,11 +36,10 @@ from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_regression
 
-
 from tokenizer import Tokenizer
 
 import random
-random.seed('ebenizzyjschear')
+random.seed('ebenizzyjschear') #lol
 
 '''
 JSON Structure
@@ -239,8 +238,6 @@ def main():
     test_labels = numpy.array(labels[splitindex:])
     ############################################################
 
-    # test_labels = numpy.array(test_labels)
-
 
     ##### TRAIN THE MODEL ######################################
     print "-- Training Classifier -- " + str(timer.next())
@@ -280,87 +277,6 @@ def main():
     classifier.fit(train_features, train_labels)
     ############################################################
 
-
-    ###### VALIDATE THE MODEL ##################################
-    # Print training mean accuracy using 'score'
-    print "-- Testing -- " + str(timer.next())
-    # print "Mean accuracy on training data:", classifier.score(train_features, train_labels)
-    predicted_labels = classifier.predict(test_features)
-
-    def output_random_predictions(output_file, n = 50):
-        with open(output_file,"w") as outfile:
-            random.seed(datetime.now())
-            zipped = zip(reviews[splitindex:],test_labels, predicted_labels)
-            zipped = filter(lambda item: len(item[2]) > 1 and len(item[1]) > 1, zipped)
-            random.shuffle(zipped)
-            out = ""
-            for review_text, actual_label, predicted_label in zipped:
-               pdb.set_trace()
-    print "-- Output Predictions --"
-    output_random_predictions("../../html/htmldata/predictions.txt", n=50)
-
-
-
-
-    print classification_report(test_labels, predicted_labels)
-    # for evaluation_function in [accuracy_score, f1_score, lambda test_labels, predicted_labels : fbeta_score(test_labels, predicted_labels, .1), hamming_loss, jaccard_similarity_score, precision_score, recall_score, zero_one_loss]:
-    #     print evaluation_function.__name__ + ":" + str(evaluation_function(test_labels, predicted_labels))
-
-    print "Precision score"
-    print precision_score(test_labels, predicted_labels, average = None)
-    print precision_score(test_labels, predicted_labels, average = 'samples')
-
-    print "Recall scores:"
-    print recall_score(test_labels, predicted_labels, average = None)
-    print recall_score(test_labels, predicted_labels, average = 'samples')
-
-    print "f1 scores:"
-    print f1_score(test_labels, predicted_labels, average = None)
-    print f1_score(test_labels, predicted_labels, average = 'samples')
-
-    print "Accuracy score:"
-    print accuracy_score(test_labels, predicted_labels)
-
-    print "Hamming loss:"
-    print hamming_loss(test_labels, predicted_labels)
-
-    print "Zero-one loss"
-    print zero_one_loss(test_labels, predicted_labels)
-
-    print "Jaccard similarity:"
-    print jaccard_similarity_score(test_labels, predicted_labels)
-
-    def evaluate(test_labels, predicted_labels):
-        print classification_report(test_labels, predicted_labels)
-        # pdb.set_trace()
-        for evaluation_function in [accuracy_score, f1_score, lambda test_labels, predicted_labels : fbeta_score(test_labels, predicted_labels, .1), hamming_loss, jaccard_similarity_score, precision_score, recall_score, zero_one_loss]:
-            print evaluation_function.__name__ + ":" + str(evaluation_function(test_labels, predicted_labels))
-
-    evaluate(test_labels, predicted_labels)
-    # for test_feature, label in zip(test_features, predicted_labels)[1:20]:
-    #     # pdb.set_trace()
-    #     print test_features, label
-
-    # TODO: Try the different metric here that are more interpretable for multilabel classification
-
-    # Perform 5 fold cross validation (cross_validation.cross_val_score) with scoring='accuracy'
-    # and print the mean score and std deviation
-    # cv = 2
-
-    # print "-- Cross-Validating with " + str(cv) + " folds -- "
-    # cv = 4
-    # scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
-    #     scoring='accuracy', cv = cv, n_jobs=cv) # passing integer for cv uses StratifiedKFold where k = integer
-    # print scores, scores.mean()
-
-    #scores = cross_validation.cross_val_score(classifier, train_features, train_labels,
-    #    scoring='accuracy', cv=5, n_jobs=-1)
-
-    # print "Cross validation mean score:", numpy.mean(scores)
-    # print "Cross validation standard deviation:", numpy.std(scores)
-    ############################################################
-
-
     ##### EXAMINE THE MODEL ####################################
     if opts.top is not None and opts.classifier != "RF":
         print "-- Informative Features -- " + str(timer.next())
@@ -368,6 +284,37 @@ def main():
         print "Top", opts.top, "most informative features:"
         print_top(opts.top, vectorizer, classifier, opts.output)
     ############################################################
+
+    ###### TEST THE MODEL ##################################
+    print "-- Testing -- " + str(timer.next())
+
+    predicted_labels = classifier.predict(test_features)
+    evaluate(test_labels, predicted_labels)
+    ############################################################
+
+
+
+def evaluate(test_labels, predicted_labels):
+    print classification_report(test_labels, predicted_labels)
+
+    for evaluation_function in [precision_score, recall_score, f1_score]:
+        print evaluation_function.__name__
+        print "Weighted:", evaluation_function(test_labels, predicted_labels, average = 'weighted')
+        print "Macro:", evaluation_function(test_labels, predicted_labels, average = 'macro')
+        print "Micro:", evaluation_function(test_labels, predicted_labels, average = 'micro')
+        print "Samples:", evaluation_function(test_labels, predicted_labels, average = 'samples')
+
+    print "Accuracy score: "
+    print accuracy_score(test_labels, predicted_labels)
+
+    print "Hamming loss: "
+    print hamming_loss(test_labels, predicted_labels)
+
+    print "Zero-one loss: "
+    print zero_one_loss(test_labels, predicted_labels)
+
+    print "Jaccard similarity: "
+    print jaccard_similarity_score(test_labels, predicted_labels)
 
 
 def print_top(num, vectorizer, classifier, output = None):
