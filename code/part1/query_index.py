@@ -121,11 +121,13 @@ class SearchEngine:
         return strrep
 
     def strrep_item(self, field_name, value):
-            # field_name, value = item
-            if field_name == "categories":
-                return str(field_name) + ": " + ", ".join(map(str, value))
+        if field_name == "categories":
+            return str(field_name) + ": " + ", ".join(map(str, value))
+        else:
+            if type(value) == unicode:
+                return str(field_name.encode('utf-8')) + ": " + str(value.encode('utf-8'))
             else:
-                return str(field_name) + ": " + str(value)
+                return str(field_name.encode('utf-8')) + ": " + str(value)
 
     def htmlrep_item(self, field_name, value):
             if field_name == "categories":
@@ -170,7 +172,7 @@ class SearchEngine:
         rating = self.get_rating(business_id)
         num_reviews = self.get_review_count(business_id)
         return rating*math.log(num_reviews)*sum(map(lambda term: self.tf_idf(business_id,term),terms))
-        # return sum(map(lambda term: self.tf_idf(business_id,term),terms))
+        #return sum(map(lambda term: self.tf_idf(business_id,term),terms))
 
     def rank_results(self, business_ids, terms):
         return sorted(business_ids, key = lambda b: self.ranking_function(b,terms),reverse = True)
@@ -182,7 +184,7 @@ class SearchEngine:
         if query[0] == "\"" == query[-1] == "\"":
             tokenized = self.tokenizer.tokenize(query[1:-1])
             if len(tokenized) == 0:
-                raise UninformativeQueryException
+                return []
             if len(tokenized) == 1:
                 return self.one_word_query(tokenized[0])
             else:
@@ -262,9 +264,13 @@ def main():
     while True:
         try:
             query = raw_input("Please enter search query: ")
+            if not query:
+                continue
             print search_engine.process_query(query, opts.htmlrep)
         except EOFError:
             return
+        except UninformativeQueryException:
+            continue
 
 if __name__ == '__main__':
     main()
