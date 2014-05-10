@@ -39,6 +39,9 @@ from sklearn.feature_selection import f_regression
 
 from tokenizer import Tokenizer
 
+import random
+random.seed('ebenizzyjschear')
+
 '''
 JSON Structure
 
@@ -201,6 +204,8 @@ def main():
     labels = []
     review_file = open(opts.reviews)
     i = 0
+    review_file = [line for line in review_file]
+    random.shuffle(review_file)
     for line in review_file:
         if opts.first != None and i > opts.first: break
         i += 1
@@ -228,12 +233,10 @@ def main():
 
     train_features = vectorizer.fit_transform(reviews[:splitindex])
     test_features = vectorizer.transform(reviews[splitindex:])
-    del reviews
 
     # Transform training labels and test labels to numpy array (numpy.array)
     train_labels = numpy.array(labels[:splitindex])
     test_labels = numpy.array(labels[splitindex:])
-    del labels
     ############################################################
 
     # test_labels = numpy.array(test_labels)
@@ -283,6 +286,24 @@ def main():
     print "-- Testing -- " + str(timer.next())
     # print "Mean accuracy on training data:", classifier.score(train_features, train_labels)
     predicted_labels = classifier.predict(test_features)
+
+    def output_random_predictions(output_file, n = 50):
+        with open(output_file,"w") as outfile:
+            random.seed(datetime.now())
+            zipped = zip(reviews[splitindex:],test_labels, predicted_labels)
+            zipped = filter(lambda item: len(item[2]) > 1 and len(item[1]) > 1, zipped)
+            random.shuffle(zipped)
+            out = ""
+            for review_text, actual_label, predicted_label in zipped[:n]:
+                s = str(review_text) + "\t" + str(actual_label) + "\t" + str(predicted_label) + "\t"
+                out += s
+            outfile.write(s)
+    print "-- Output Predictions --"
+    output_random_predictions("../../html/htmldata/predictions.txt",n=50)
+
+
+
+
     print classification_report(test_labels, predicted_labels)
     # for evaluation_function in [accuracy_score, f1_score, lambda test_labels, predicted_labels : fbeta_score(test_labels, predicted_labels, .1), hamming_loss, jaccard_similarity_score, precision_score, recall_score, zero_one_loss]:
     #     print evaluation_function.__name__ + ":" + str(evaluation_function(test_labels, predicted_labels))
