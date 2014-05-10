@@ -170,6 +170,7 @@ class SearchEngine:
         rating = self.get_rating(business_id)
         num_reviews = self.get_review_count(business_id)
         return rating*math.log(num_reviews)*sum(map(lambda term: self.tf_idf(business_id,term),terms))
+        # return sum(map(lambda term: self.tf_idf(business_id,term),terms))
 
     def rank_results(self, business_ids, terms):
         return sorted(business_ids, key = lambda b: self.ranking_function(b,terms),reverse = True)
@@ -246,6 +247,7 @@ class SearchEngine:
 
 
 #python query_index.py -i ../../tmp/inverted_index.csv -s ./stopwords.txt -b ../../tmp/businesses.json
+# python query_index.py -i ../../tmp/inverted_index.txt -s ./stopwords.txt -b ../../data/extracted/yelp_academic_dataset_business.json
 #python query_index.py -i ../../tmp/inverted_index_small.csv -s ./stopwords.txt -b ../../tmp/businesses.json
 def main():
     parser = argparse.ArgumentParser()
@@ -259,7 +261,7 @@ def main():
     search_engine = SearchEngine(opts.index, tokenizer, opts.businesses, num_results = 10, in_memory = bool(opts.in_memory))
     while True:
         try:
-            query = raw_input("Please enter search query:")
+            query = raw_input("Please enter search query: ")
             print search_engine.process_query(query, opts.htmlrep)
         except EOFError:
             return
