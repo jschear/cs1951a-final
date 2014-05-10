@@ -4,6 +4,21 @@
     <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Final Project</title>
+    <style>
+        table {
+            margin: 5px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        td, th {
+            padding: 10px;
+        }
+
+        table thead {
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
@@ -51,9 +66,7 @@
                 <li> Russian </li>
                 </ul>
 
-                We felt comfortable doing this as these classes did not have enough data to justify classification.
-                </p>
-                <p>  <pre>        precision    recall  f1-score   support<br><br>     Afghan       0.85      0.38      0.52        29<br>    African       0.98      0.87      0.92        55<br>American (New)       0.90      0.82      0.86      7048<br>American (Traditional)       0.84      0.73      0.78      5531<br>Asian Fusion       0.89      0.78      0.83      1335<br>   Barbeque       0.95      0.87      0.91      1113<br>     Basque       1.00      0.37      0.54        30<br> Brasseries       1.00      0.83      0.91        30<br>  Brazilian       0.97      0.92      0.94        62<br>Breakfast & Brunch       0.87      0.80      0.83      4596<br>    British       0.99      0.98      0.98       319<br>    Buffets       0.92      0.83      0.88       922<br>    Burgers       0.91      0.84      0.87      2948<br>      Cafes       0.84      0.67      0.75       980<br>Cajun/Creole       0.93      0.80      0.86       174<br>  Cambodian       1.00      0.97      0.98        32<br>  Caribbean       0.95      0.78      0.86       322<br>Cheesesteaks       0.87      0.72      0.79       200<br>Chicken Wings       0.77      0.65      0.70       368<br>    Chinese       0.94      0.88      0.91      2303<br>Comfort Food       0.85      0.51      0.63        89<br>  Creperies       0.99      0.93      0.96       114<br>      Cuban       1.00      0.87      0.93        99<br>      Delis       0.87      0.78      0.82      1068<br>    Dim Sum       0.95      0.73      0.82       132<br>     Diners       0.82      0.58      0.68       466<br>  Ethiopian       0.97      0.91      0.94        67<br>  Fast Food       0.80      0.66      0.72      1382<br>   Filipino       0.98      0.70      0.82        61<br>Fish & Chips       0.94      0.78      0.85       117<br>     Fondue       0.97      0.93      0.95        95<br> Food Court       0.86      0.40      0.55        30<br>Food Stands       1.00      0.43      0.60        28<br>     French       0.97      0.86      0.91       478<br> Gastropubs       0.92      0.78      0.85       351<br>     German       1.00      0.90      0.95       127<br>Gluten-Free       0.88      0.74      0.80       609<br>      Greek       0.92      0.84      0.88       762<br>      Halal       0.88      0.65      0.75       100<br>   Hawaiian       0.96      0.89      0.92       366<br>   Hot Dogs       0.88      0.75      0.81       608<br>     Indian       0.99      0.96      0.97       481<br>      Irish       0.98      0.91      0.94       358<br>    Italian       0.93      0.89      0.91      4918<br>   Japanese       0.93      0.89      0.91      1803<br>     Korean       0.92      0.75      0.83       241<br>Latin American       0.91      0.87      0.89       564<br>   Lebanese       1.00      0.66      0.79        47<br>Mediterranean       0.91      0.82      0.86      1581<br>    Mexican       0.96      0.93      0.95      5837<br>Middle Eastern       0.86      0.75      0.80       415<br>Modern European       1.00      0.80      0.89        51<br>  Mongolian       0.86      0.90      0.88       113<br>   Moroccan       1.00      0.91      0.95        23<br>  Pakistani       0.86      0.73      0.79       157<br>Persian/Iranian       0.91      0.83      0.87        83<br>   Peruvian       0.96      0.83      0.89        29<br>      Pizza       0.95      0.92      0.94      4871<br>     Polish       1.00      0.86      0.93        74<br>      Salad       0.76      0.56      0.64       966<br> Sandwiches       0.83      0.73      0.78      4435<br>Scandinavian       1.00      0.83      0.91        66<br>    Seafood       0.89      0.78      0.83      1411<br>  Soul Food       0.98      0.89      0.93       302<br>       Soup       0.99      0.87      0.92       172<br>   Southern       0.97      0.89      0.93       346<br>    Spanish       1.00      0.71      0.83       103<br>Steakhouses       0.95      0.89      0.92      1695<br> Sushi Bars       0.95      0.94      0.94      2190<br>   Szechuan       0.69      0.71      0.70       127<br>  Taiwanese       0.91      0.84      0.88        38<br> Tapas Bars       1.00      0.40      0.57        43<br>Tapas/Small Plates       0.99      0.85      0.91       170<br>    Tex-Mex       0.84      0.73      0.78       548<br>       Thai       0.95      0.94      0.95      1253<br>    Turkish       1.00      0.57      0.73        35<br>      Vegan       0.84      0.69      0.76       592<br> Vegetarian       0.87      0.79      0.83      1365<br> Vietnamese       0.97      0.92      0.94       889<br><br>avg / total       0.90      0.83      0.86     73938 </pre> </p>
+                We felt comfortable doing this as these classes did not have enough data to justify classification.</p>
             <h3> Data Partition </h3>
             <p>
 
@@ -97,17 +110,35 @@
                     <li>Micro Average: Each metric (true/false positives and negatives) are summed across all classes, then averaged.</li>
                     <li>Macro Average: Each metric is calculated for each label, and these values are averaged across all labels. This weights each label equally regardless of support, giving extra weight to rare labels.</li>
                     <li>Weighted Average: The same as macro average, but weighted by the number of true instances for each label.</li>
-                    <li>Samples: Each metric is calculated for each instance
-                    'samples': Calculate metrics for each instance, and find their average (only meaningful for multilabel classification where this differs from accuracy_score).</li>
-                </p>
+                    <li>Samples: Each metric is calculated for each data point, and then averaged.</li>
+                </ul>
 
-                <p>One metric of particular interest for multilabel problems in Hamming loss. It is more forgiving than the tradition zero-one loss (discussed above, in which a classification is deemed incorrect if the predicted and labeled set aren't equal). It penalizes the classifier only for incorrect labels (labels that are present for )
-
-                <p>In multilabel classification, the Hamming loss is different from the subset zero-one loss. The zero-one loss considers the entire set of labels for a given sample incorrect if it does entirely match the true set of labels. Hamming loss is more forgiving in that it penalizes the individual labels.</p>
+                <p>One metric of particular interest for multilabel problems in Hamming loss. It is more forgiving than the tradition zero-one loss (discussed above, in which a classification is deemed incorrect if the predicted and labeled set aren't equal). It penalizes the classifier only for incorrect labels (labels that are present in the test set but are predicted).</p>
 
                 <h3>Results</h3>
-                <p>Though we were able to
+                <p>Below is the classification report, breaking down the precision, recall, and f-score for each class.</p>
 
+                <p>  <pre>        precision    recall  f1-score   support<br><br>     Afghan       0.85      0.38      0.52        29<br>    African       0.98      0.87      0.92        55<br>American (New)       0.90      0.82      0.86      7048<br>American (Traditional)       0.84      0.73      0.78      5531<br>Asian Fusion       0.89      0.78      0.83      1335<br>   Barbeque       0.95      0.87      0.91      1113<br>     Basque       1.00      0.37      0.54        30<br> Brasseries       1.00      0.83      0.91        30<br>  Brazilian       0.97      0.92      0.94        62<br>Breakfast & Brunch       0.87      0.80      0.83      4596<br>    British       0.99      0.98      0.98       319<br>    Buffets       0.92      0.83      0.88       922<br>    Burgers       0.91      0.84      0.87      2948<br>      Cafes       0.84      0.67      0.75       980<br>Cajun/Creole       0.93      0.80      0.86       174<br>  Cambodian       1.00      0.97      0.98        32<br>  Caribbean       0.95      0.78      0.86       322<br>Cheesesteaks       0.87      0.72      0.79       200<br>Chicken Wings       0.77      0.65      0.70       368<br>    Chinese       0.94      0.88      0.91      2303<br>Comfort Food       0.85      0.51      0.63        89<br>  Creperies       0.99      0.93      0.96       114<br>      Cuban       1.00      0.87      0.93        99<br>      Delis       0.87      0.78      0.82      1068<br>    Dim Sum       0.95      0.73      0.82       132<br>     Diners       0.82      0.58      0.68       466<br>  Ethiopian       0.97      0.91      0.94        67<br>  Fast Food       0.80      0.66      0.72      1382<br>   Filipino       0.98      0.70      0.82        61<br>Fish & Chips       0.94      0.78      0.85       117<br>     Fondue       0.97      0.93      0.95        95<br> Food Court       0.86      0.40      0.55        30<br>Food Stands       1.00      0.43      0.60        28<br>     French       0.97      0.86      0.91       478<br> Gastropubs       0.92      0.78      0.85       351<br>     German       1.00      0.90      0.95       127<br>Gluten-Free       0.88      0.74      0.80       609<br>      Greek       0.92      0.84      0.88       762<br>      Halal       0.88      0.65      0.75       100<br>   Hawaiian       0.96      0.89      0.92       366<br>   Hot Dogs       0.88      0.75      0.81       608<br>     Indian       0.99      0.96      0.97       481<br>      Irish       0.98      0.91      0.94       358<br>    Italian       0.93      0.89      0.91      4918<br>   Japanese       0.93      0.89      0.91      1803<br>     Korean       0.92      0.75      0.83       241<br>Latin American       0.91      0.87      0.89       564<br>   Lebanese       1.00      0.66      0.79        47<br>Mediterranean       0.91      0.82      0.86      1581<br>    Mexican       0.96      0.93      0.95      5837<br>Middle Eastern       0.86      0.75      0.80       415<br>Modern European       1.00      0.80      0.89        51<br>  Mongolian       0.86      0.90      0.88       113<br>   Moroccan       1.00      0.91      0.95        23<br>  Pakistani       0.86      0.73      0.79       157<br>Persian/Iranian       0.91      0.83      0.87        83<br>   Peruvian       0.96      0.83      0.89        29<br>      Pizza       0.95      0.92      0.94      4871<br>     Polish       1.00      0.86      0.93        74<br>      Salad       0.76      0.56      0.64       966<br> Sandwiches       0.83      0.73      0.78      4435<br>Scandinavian       1.00      0.83      0.91        66<br>    Seafood       0.89      0.78      0.83      1411<br>  Soul Food       0.98      0.89      0.93       302<br>       Soup       0.99      0.87      0.92       172<br>   Southern       0.97      0.89      0.93       346<br>    Spanish       1.00      0.71      0.83       103<br>Steakhouses       0.95      0.89      0.92      1695<br> Sushi Bars       0.95      0.94      0.94      2190<br>   Szechuan       0.69      0.71      0.70       127<br>  Taiwanese       0.91      0.84      0.88        38<br> Tapas Bars       1.00      0.40      0.57        43<br>Tapas/Small Plates       0.99      0.85      0.91       170<br>    Tex-Mex       0.84      0.73      0.78       548<br>       Thai       0.95      0.94      0.95      1253<br>    Turkish       1.00      0.57      0.73        35<br>      Vegan       0.84      0.69      0.76       592<br> Vegetarian       0.87      0.79      0.83      1365<br> Vietnamese       0.97      0.92      0.94       889<br><br>avg / total       0.90      0.83      0.86     73938 </pre> </p>
+
+                <br>
+                <p>These metrics average across all classes using the methods described above.</p>
+
+                <table>
+                    <tr><td>Average Method</td><td>Precision Score</td><td>Recall Score</td><td>F1-Score</td></tr>
+                    <tr><td>Weighted</td><td>0.903239300009</td><td>0.82687405077</td><td>0.862306028303</td></tr>
+                    <tr><td>Macro</td><td>0.924772198277</td><td>0.780558718507</td><td>0.840367911577</td></tr>
+                    <tr><td>Micro</td><td>0.905334580494</td><td>0.82687405077</td><td>0.86432737762</td></tr>
+                    <tr><td>Samples</td><td>0.857796219754</td><td>0.842226025431</td><td>0.835345804989</td></tr>
+                </table>
+
+                <br>
+
+                <p><strong>Accuracy Score:</strong> 0.700120554551</p>
+                <p><strong>Zero-one Loss:</strong> 0.299879445449 (note that accuracy score + zero-one loss = 1)</p>
+                <p><strong>Hamming Loss:</strong> 0.00521649133937</p>
+                <p><strong>Jaccard Similarity:</strong> 0.803563893912</p>
+
+                <p>Though we weren't able to achieve the strict 80% accuracy we hypothesized, we were able to achieve a very small Hamming loss, and the average precision, recall, and f-scores are all in the range of 0.78 - 0.93. We were satisfied with this result.</p>
 
                 <h3>Visualizations</h3>
                 <p>For each category, we pulled out the top 20 most discerning features. This helped us confirm that our classifier was making logical decisions (although these are features after stemming, so some are difficult understand). We also modified our stopwords list after examining some important words which we believed shouldn't be included as features.</p>
